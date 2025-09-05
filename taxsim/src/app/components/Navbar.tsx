@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 
 export default function Navbar() {
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState<boolean>(false);
 
   return (
     <nav className="fixed top-0 left-0 w-full bg-white/80 backdrop-blur-md shadow-sm z-50">
@@ -83,18 +83,18 @@ export default function Navbar() {
               Calculadora
             </Link>
             <Link
-              href="#sobre"
+              href="/sobre"
               onClick={() => setMenuOpen(false)}
               className="text-gray-700 hover:text-blue-600 transition font-medium"
             >
               Sobre
             </Link>
             <Link
-              href="#contato"
+              href="/desenvolvedores"
               onClick={() => setMenuOpen(false)}
               className="text-gray-700 hover:text-blue-600 transition font-medium"
             >
-              Contato
+              Desenvolvedores
             </Link>
           </div>
         </div>

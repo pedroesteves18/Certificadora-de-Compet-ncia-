@@ -47,8 +47,8 @@ export default function Desenvolvedores() {
                                 <p className="text-gray-600 text-sm mt-2">Desenvolvedor Full-Stack</p>
                             </div>
                             <div className="bg-white p-6 rounded-2xl shadow-lg border hover:scale-105 transition">
-                                <h3 className="text-lg font-bold text-gray-800">[Nome do Dev 2]</h3>
-                                <p className="text-gray-600 text-sm mt-2">Especialista em Frontend</p>
+                                <h3 className="text-lg font-bold text-gray-800">João Pedro Koguishi</h3>
+                                <p className="text-gray-600 text-sm mt-2">Desenvolvedor FullStack Mobile</p>
                             </div>
                             <div className="bg-white p-6 rounded-2xl shadow-lg border hover:scale-105 transition">
                                 <h3 className="text-lg font-bold text-gray-800">[Nome do Dev 3]</h3>
