@@ -1,0 +1,46 @@
+services:
+  db:
+    image: postgres:15
+    container_name: taxsim_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "${DB_PORT}:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  api:
+    build: .
+    container_name: taxsim_api
+    working_dir: /taxsim/src/api
+    command: sh -c "npm install && npm run dev" # instala deps e roda dev
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/taxsim
+      - /taxsim/node_modules
+    env_file:
+      - .env
+    depends_on:
+      - db
+
+  app:
+    build: .
+    container_name: taxsim_app
+    working_dir: /taxsim/src/app
+    command: sh -c "npm install && npm run dev" # instala deps e roda dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/taxsim
+      - /taxsim/node_modules
+    env_file:
+      - .env
+    depends_on:
+      - api
+
+volumes:
+  db_data:
