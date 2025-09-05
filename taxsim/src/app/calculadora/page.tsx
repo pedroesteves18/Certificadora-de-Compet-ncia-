@@ -12,19 +12,20 @@ import {
   YAxis,
   Tooltip,
 } from "recharts";
+import type { ChartData, FormField } from "@/types";
 
 export default function Calculadora() {
-  const [valor, setValor] = useState(10000);
-  const [taxaAdm, setTaxaAdm] = useState(1);
-  const [taxaPerf, setTaxaPerf] = useState(20);
-  const [ir, setIr] = useState(15);
-  const [anos, setAnos] = useState(5);
-  const [resultado, setResultado] = useState(null);
-  const [dadosGrafico, setDadosGrafico] = useState([]);
+  const [valor, setValor] = useState<number>(10000);
+  const [taxaAdm, setTaxaAdm] = useState<number>(1);
+  const [taxaPerf, setTaxaPerf] = useState<number>(20);
+  const [ir, setIr] = useState<number>(15);
+  const [anos, setAnos] = useState<number>(5);
+  const [resultado, setResultado] = useState<string | null>(null);
+  const [dadosGrafico, setDadosGrafico] = useState<ChartData[]>([]);
 
-  const calcular = () => {
+  const calcular = (): void => {
     let investimento = valor;
-    let historico = [];
+    let historico: ChartData[] = [];
 
     for (let ano = 1; ano <= anos; ano++) {
       let rendimentoBruto = investimento * 0.1;
@@ -43,6 +44,34 @@ export default function Calculadora() {
     setDadosGrafico(historico);
   };
 
+  const fields: FormField[] = [
+    {
+      label: "Valor Investido (R$)",
+      value: valor,
+      setter: setValor,
+    },
+    {
+      label: "Taxa de Administração (%)",
+      value: taxaAdm,
+      setter: setTaxaAdm,
+    },
+    {
+      label: "Taxa de Performance (%)",
+      value: taxaPerf,
+      setter: setTaxaPerf,
+    },
+    {
+      label: "Imposto de Renda (%)",
+      value: ir,
+      setter: setIr,
+    },
+    {
+      label: "Tempo (anos)",
+      value: anos,
+      setter: setAnos,
+    },
+  ];
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 text-gray-900 flex flex-col">
       <Navbar />
@@ -60,33 +89,7 @@ export default function Calculadora() {
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {[
-              {
-                label: "Valor Investido (R$)",
-                value: valor,
-                setter: setValor,
-              },
-              {
-                label: "Taxa de Administração (%)",
-                value: taxaAdm,
-                setter: setTaxaAdm,
-              },
-              {
-                label: "Taxa de Performance (%)",
-                value: taxaPerf,
-                setter: setTaxaPerf,
-              },
-              {
-                label: "Imposto de Renda (%)",
-                value: ir,
-                setter: setIr,
-              },
-              {
-                label: "Tempo (anos)",
-                value: anos,
-                setter: setAnos,
-              },
-            ].map((field, i) => (
+            {fields.map((field, i) => (
               <div key={i}>
                 <label className="block text-gray-700 font-medium mb-2">
                   {field.label}
