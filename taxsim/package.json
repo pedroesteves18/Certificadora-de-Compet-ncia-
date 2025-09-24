@@ -2,20 +2,31 @@
   "name": "taxsim",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
     "docker:start": "docker compose up --build",
     "docker:restart": "docker compose down && docker compose up -d",
+    "back:dev": "nodemon",
     "lint": "eslint",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.2",
+    "express": "^5.1.0",
+    "module-alias": "^2.2.3",
     "next": "15.5.2",
+    "nodemon": "^3.1.10",
+    "pg": "^8.16.3",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "recharts": "^3.1.2"
+    "recharts": "^3.1.2",
+    "router": "^2.2.0",
+    "sequelize": "^6.37.7"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

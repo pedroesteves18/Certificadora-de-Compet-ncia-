@@ -1,0 +1,5 @@
+{
+  "watch": ["src/api"],
+  "ext": "js,json",
+  "exec": "node src/api/app.js"
+}
