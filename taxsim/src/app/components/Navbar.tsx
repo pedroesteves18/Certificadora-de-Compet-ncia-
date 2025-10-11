@@ -3,9 +3,18 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
+  const pathname = usePathname();
+
+  const navLinks = [
+    { href: "/", label: "Home" },
+    { href: "/calculadora", label: "Calculadora" },
+    { href: "/sobre", label: "Sobre" },
+    { href: "/desenvolvedores", label: "Desenvolvedores" },
+  ];
 
   return (
     <nav className="fixed top-0 left-0 w-full bg-white/80 backdrop-blur-md shadow-sm z-50">
@@ -29,30 +38,19 @@ export default function Navbar() {
 
         {/* Links Desktop */}
         <div className="hidden md:flex gap-8">
-          <Link
-            href="/"
-            className="text-gray-700 hover:text-blue-600 transition font-medium"
-          >
-            Home
-          </Link>
-          <Link
-            href="/calculadora"
-            className="text-gray-700 hover:text-blue-600 transition font-medium"
-          >
-            Calculadora
-          </Link>
-          <Link
-            href="/sobre"
-            className="text-gray-700 hover:text-blue-600 transition font-medium"
-          >
-            Sobre
-          </Link>
-          <Link
-            href="/desenvolvedores"
-            className="text-gray-700 hover:text-blue-600 transition font-medium"
-          >
-            Desenvolvedores
-          </Link>
+          {navLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={`transition font-medium ${
+                pathname === link.href
+                  ? "text-blue-600"
+                  : "text-gray-700 hover:text-blue-600"
+              }`}
+            >
+              {link.label}
+            </Link>
+          ))}
         </div>
 
         {/* Botão Mobile */}
@@ -68,34 +66,20 @@ export default function Navbar() {
       {menuOpen && (
         <div className="md:hidden bg-white shadow-md border-t animate-slide-down">
           <div className="flex flex-col px-6 py-4 space-y-4">
-            <Link
-              href="/"
-              onClick={() => setMenuOpen(false)}
-              className="text-gray-700 hover:text-blue-600 transition font-medium"
-            >
-              Home
-            </Link>
-            <Link
-              href="/calculadora"
-              onClick={() => setMenuOpen(false)}
-              className="text-gray-700 hover:text-blue-600 transition font-medium"
-            >
-              Calculadora
-            </Link>
-            <Link
-              href="/sobre"
-              onClick={() => setMenuOpen(false)}
-              className="text-gray-700 hover:text-blue-600 transition font-medium"
-            >
-              Sobre
-            </Link>
-            <Link
-              href="/desenvolvedores"
-              onClick={() => setMenuOpen(false)}
-              className="text-gray-700 hover:text-blue-600 transition font-medium"
-            >
-              Desenvolvedores
-            </Link>
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setMenuOpen(false)}
+                className={`transition font-medium ${
+                  pathname === link.href
+                    ? "text-blue-600"
+                    : "text-gray-700 hover:text-blue-600"
+                }`}
+              >
+                {link.label}
+              </Link>
+            ))}
           </div>
         </div>
       )}
