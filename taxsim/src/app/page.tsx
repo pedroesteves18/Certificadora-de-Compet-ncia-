@@ -36,23 +36,21 @@ export default function Home() {
             {/* Botões CTA */}
             <div className="mt-10 flex flex-col sm:flex-row justify-center gap-4">
               <Link href="/calculadora">
-                <button className="px-8 py-4 rounded-xl shadow-xl bg-white text-blue-600 font-semibold hover:bg-gray-100 transition">
-                  🚀 Calcular
+                <button className="px-8 py-4 rounded-xl shadow-xl bg-white text-blue-600 font-semibold hover:bg-gray-100 transition-transform hover:scale-105 active:scale-95">
+                  🚀 Simular Agora
                 </button>
               </Link>
               <Link href="/sobre">
-                <button className="px-8 py-4 rounded-xl shadow-xl border border-white text-white font-semibold hover:bg-white/10 transition">
+                <button className="px-8 py-4 rounded-xl shadow-xl border border-white text-white font-semibold hover:bg-white/10 transition-transform hover:scale-105 active:scale-95">
                   Saiba Mais
                 </button>
               </Link>
-
-              
             </div>
 
             {/* Mini Features */}
             <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-6 text-sm text-white/90">
               <div className="bg-white/10 backdrop-blur-md p-4 rounded-xl shadow-md">
-                📊 Cálculos instantâneos
+                📊 Cálculos em tempo real
               </div>
               <div className="bg-white/10 backdrop-blur-md p-4 rounded-xl shadow-md">
                 🔒 Dados seguros
@@ -66,34 +64,34 @@ export default function Home() {
 
 
         {/* Contexto do Problema */}
-        <section className="py-24 px-6 bg-gradient-to-br from-rose-50 to-white relative">
+        <section className="py-28 px-6 bg-gradient-to-br from-red-50 to-white relative">
           <div className="max-w-6xl mx-auto text-center">
-            <h2 className="text-4xl md:text-5xl font-extrabold text-rose-600 mb-6">
+            <h2 className="text-4xl md:text-5xl font-extrabold text-gray-800 mb-6 tracking-tight">
               O Desafio dos Investidores
             </h2>
             <p className="text-lg md:text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed">
               Investir é essencial para o futuro, mas muitos{" "}
-              <span className="font-semibold text-rose-600">não entendem</span> o real
+              <span className="font-semibold text-blue-600">não entendem</span> o real
               impacto das taxas e impostos. Essa falta de clareza pode significar{" "}
-              <span className="underline decoration-rose-400">perda de oportunidades</span>{" "}
+              <span className="underline decoration-blue-400">perda de oportunidades</span>{" "}
               e decisões financeiras ruins.
             </p>
           </div>
 
-          <div className="mt-12 grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            <div className="bg-white p-6 rounded-2xl shadow-lg border hover:scale-105 transition">
+          <div className="mt-16 grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            <div className="bg-white p-6 rounded-2xl shadow-lg border hover:border-blue-500 hover:shadow-xl transition-all duration-300 hover:scale-105">
               <h3 className="text-lg font-bold text-gray-800 mb-2">📉 Falta de clareza</h3>
               <p className="text-gray-600 text-sm">
                 Investidores subestimam como pequenas taxas corroem grandes ganhos.
               </p>
             </div>
-            <div className="bg-white p-6 rounded-2xl shadow-lg border hover:scale-105 transition">
+            <div className="bg-white p-6 rounded-2xl shadow-lg border hover:border-blue-500 hover:shadow-xl transition-all duration-300 hover:scale-105">
               <h3 className="text-lg font-bold text-gray-800 mb-2">⏳ Perda de tempo</h3>
               <p className="text-gray-600 text-sm">
                 Planilhas manuais tornam o processo cansativo e pouco prático.
               </p>
             </div>
-            <div className="bg-white p-6 rounded-2xl shadow-lg border hover:scale-105 transition">
+            <div className="bg-white p-6 rounded-2xl shadow-lg border hover:border-blue-500 hover:shadow-xl transition-all duration-300 hover:scale-105">
               <h3 className="text-lg font-bold text-gray-800 mb-2">🤔 Decisões ruins</h3>
               <p className="text-gray-600 text-sm">
                 Sem dados claros, a tomada de decisão se torna insegura.
@@ -103,9 +101,9 @@ export default function Home() {
         </section>
 
         {/* Solução Proposta */}
-        <section className="py-24 px-6 bg-gradient-to-r from-blue-50 via-white to-green-50 relative">
+        <section className="py-28 px-6 bg-gradient-to-r from-blue-50 via-white to-green-50 relative">
           <div className="max-w-6xl mx-auto text-center">
-            <h2 className="text-4xl md:text-5xl font-extrabold text-blue-600 mb-6">
+            <h2 className="text-4xl md:text-5xl font-extrabold text-blue-600 mb-6 tracking-tight">
               Nossa Solução
             </h2>
             <p className="text-lg md:text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed mb-12">
@@ -116,7 +114,7 @@ export default function Home() {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
-            <div className="bg-white p-6 rounded-2xl shadow-lg border flex flex-col items-start hover:scale-105 transition">
+            <div className="bg-white p-6 rounded-2xl shadow-lg border flex flex-col items-start hover:border-blue-500 hover:shadow-xl transition-all duration-300 hover:scale-105">
               <span className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-600 font-bold mb-3">
                 1
               </span>
@@ -125,7 +123,7 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="bg-white p-6 rounded-2xl shadow-lg border flex flex-col items-start hover:scale-105 transition">
+            <div className="bg-white p-6 rounded-2xl shadow-lg border flex flex-col items-start hover:border-green-500 hover:shadow-xl transition-all duration-300 hover:scale-105">
               <span className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 text-green-600 font-bold mb-3">
                 2
               </span>
@@ -134,7 +132,7 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="bg-white p-6 rounded-2xl shadow-lg border flex flex-col items-start hover:scale-105 transition">
+            <div className="bg-white p-6 rounded-2xl shadow-lg border flex flex-col items-start hover:border-purple-500 hover:shadow-xl transition-all duration-300 hover:scale-105">
               <span className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-100 text-purple-600 font-bold mb-3">
                 3
               </span>
@@ -143,7 +141,7 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="bg-white p-6 rounded-2xl shadow-lg border flex flex-col items-start hover:scale-105 transition">
+            <div className="bg-white p-6 rounded-2xl shadow-lg border flex flex-col items-start hover:border-pink-500 hover:shadow-xl transition-all duration-300 hover:scale-105">
               <span className="flex h-10 w-10 items-center justify-center rounded-full bg-pink-100 text-pink-600 font-bold mb-3">
                 4
               </span>
@@ -157,15 +155,15 @@ export default function Home() {
 
 
         {/* Call to Action */}
-        <section className="py-20 px-6 text-center">
-          <h2 className="text-3xl font-bold mb-4 text-gray-800">
+        <section className="py-28 px-6 text-center">
+          <h2 className="text-3xl font-bold mb-4 text-gray-800 tracking-tight">
             Pronto para investir com clareza?
           </h2>
           <p className="text-gray-600 mb-6 max-w-lg mx-auto">
             Experimente o TaxSim e descubra o impacto real das taxas e impostos.
           </p>
           <Link href="/calculadora">
-            <button className="px-8 py-3 bg-gradient-to-r from-blue-600 to-green-500 text-white rounded-xl shadow-lg font-semibold hover:opacity-90 transition">
+            <button className="px-8 py-3 bg-gradient-to-r from-blue-600 to-green-500 text-white rounded-xl shadow-lg font-semibold hover:opacity-90 transition-transform hover:scale-105 active:scale-95">
               Acessar Calculadora
             </button>
           </Link>

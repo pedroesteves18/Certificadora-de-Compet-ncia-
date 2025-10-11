@@ -6,6 +6,8 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
+    "docker:start": "docker compose up --build",
+    "docker:restart": "docker compose down && docker compose up -d",
     "lint": "eslint",
     "type-check": "tsc --noEmit"
   },
