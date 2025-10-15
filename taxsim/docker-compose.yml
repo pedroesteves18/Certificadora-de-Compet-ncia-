@@ -14,14 +14,13 @@ services:
 
   api:
     build: .
-    container_name: taxsim_api
+    container_name: taxsim-api
     working_dir: /taxsim/src/api
-    command: sh -c "npm install && npm run dev" # instala deps e roda dev
+    command: sh -c "npm run nodemon" # só roda nodemon
     ports:
       - "5000:5000"
     volumes:
       - .:/taxsim
-      - /taxsim/node_modules
     env_file:
       - .env
     depends_on:
@@ -31,7 +30,7 @@ services:
     build: .
     container_name: taxsim_app
     working_dir: /taxsim/src/app
-    command: sh -c "npm install && npm run dev" # instala deps e roda dev
+    command: sh -c "npm run dev" # instala deps e roda dev
     ports:
       - "3000:3000"
     volumes:

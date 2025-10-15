@@ -11,7 +11,7 @@ app.use(express.json());
 
 app.use('/api/users', userRoutes)
 
-app.listen(process.env.PORT, async () =>{
+app.listen(process.env.PORT, '0.0.0.0', async () =>{
     await connectDB();
-    console.log('server running')
+    console.log('server running on port', process.env.PORT);
 });
