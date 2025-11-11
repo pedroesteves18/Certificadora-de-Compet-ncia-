@@ -13,7 +13,7 @@ const Investment = await sequelize.define('Investment', {
         allowNull: false
     },
     type: {
-        type: DataTypes.ENUM("Ação","Fundo Imobiliário","Renda Fixa","Criptomoeda","Outro")
+        type: DataTypes.ENUM("Ação","Fundo Imobiliário","Renda Fixa","Criptomoeda")
     },
     formulaId: {
         type: DataTypes.INTEGER,

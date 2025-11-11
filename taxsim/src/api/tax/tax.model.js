@@ -19,6 +19,10 @@ const Tax = await sequelize.define('Tax', {
     type: {
         type: DataTypes.ENUM("Percent","Fixed","Multiplier","Progressive","Regressive","Capped")
     },
+    applies: {
+        type: DataTypes.ENUM("gain","capital"),
+        allowNull: false
+    },
     formulaId: {
         type: DataTypes.INTEGER,
         allowNull: true,

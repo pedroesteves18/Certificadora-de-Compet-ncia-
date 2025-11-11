@@ -1,82 +1,59 @@
-const TaxProcessor = {
+const taxProcessor = {
   process(tax, amount) {
     const type = tax.type;
     const factor = parseFloat(tax.factor);
-    const initial = tax.initial !== null ? parseFloat(tax.initial) : 0;
-    const end = tax.end !== null ? parseFloat(tax.end) : null;
-    const cap = tax.cap !== undefined && tax.cap !== null ? parseFloat(tax.cap) : null;
+    const initial = tax.initial ?? null;
+    const end = tax.end ?? null;
     const numericAmount = parseFloat(amount);
+
+    if (initial !== null && end !== null) {
+      if (numericAmount < initial || numericAmount > end) {
+        return numericAmount;
+      }
+    }
 
     switch (type) {
       case "Percent":
-        return TaxProcessor.processPercent(numericAmount, factor);
+        return numericAmount * (1 - factor / 100);
+
       case "Fixed":
-        return TaxProcessor.processFixed(numericAmount, factor);
+        return Math.max(numericAmount - factor, 0);
+
       case "Multiplier":
-        return TaxProcessor.processMultiplier(numericAmount, factor);
+        return numericAmount * factor;
+
       case "Progressive":
-        return TaxProcessor.processProgressive(numericAmount, factor, initial, end);
+        return this.processProgressive(numericAmount, factor, initial, end);
+
       case "Regressive":
-        return TaxProcessor.processRegressive(numericAmount, factor, initial, end);
+        return this.processRegressive(numericAmount, factor, initial, end);
+
       case "Capped":
-        return TaxProcessor.processCapped(numericAmount, factor, cap);
+        return this.processCapped(numericAmount, factor);
+
       default:
-        throw new Error(`Tipo de taxa desconhecido: ${type}`);
+        return numericAmount;
     }
   },
 
-  processPercent: (amount, factor) => {
-    amount = parseFloat(amount);
-    factor = parseFloat(factor);
-    return amount * (1 - factor / 100);
-  },
-
-  processFixed: (amount, factor) => {
-    amount = parseFloat(amount);
-    factor = parseFloat(factor);
-    return amount - factor;
-  },
-
-  processMultiplier: (amount, factor) => {
-    amount = parseFloat(amount);
-    factor = parseFloat(factor);
-    return amount * factor;
-  },
-
-  processProgressive: (amount, factor, initial = 0, end = null) => {
-    amount = parseFloat(amount);
-    factor = parseFloat(factor);
-    initial = parseFloat(initial);
-    if (end !== null) end = parseFloat(end);
-
-    if (end && amount > end) return amount * (1 - factor / 100);
-
-    const progress = (amount - initial) / (end ? end - initial : amount);
-    const progressiveFactor = Math.max(progress, 0) * factor;
-    return amount * (1 - progressiveFactor / 100);
-  },
-
-  processRegressive: (amount, factor, initial = 0, end = null) => {
-    amount = parseFloat(amount);
-    factor = parseFloat(factor);
-    initial = parseFloat(initial);
-    if (!end) end = amount * 2;
-    else end = parseFloat(end);
-
+  processProgressive(amount, factor, initial = 0, end = null) {
+    if (!end) return amount * (1 - factor / 100);
     const progress = Math.min((amount - initial) / (end - initial), 1);
-    const regressiveFactor = factor * (1 - progress);
-    return amount * (1 - regressiveFactor / 100);
+    const effectiveFactor = progress * factor;
+    return amount * (1 - effectiveFactor / 100);
   },
 
-  processCapped: (amount, factor, cap = null) => {
-    amount = parseFloat(amount);
-    factor = parseFloat(factor);
-    if (cap !== null) cap = parseFloat(cap);
+  processRegressive(amount, factor, initial = 0, end = null) {
+    if (!end) end = amount * 2;
+    const progress = Math.min((amount - initial) / (end - initial), 1);
+    const effectiveFactor = factor * (1 - progress);
+    return amount * (1 - effectiveFactor / 100);
+  },
 
-    const taxed = amount * (1 - factor / 100);
-    if (cap && taxed < cap) return cap;
-    return taxed;
+  processCapped(amount, factor) {
+    const cappedValue = amount * (1 - factor / 100);
+    return Math.max(cappedValue, 0);
   }
 };
 
-export default TaxProcessor;
+export default taxProcessor;

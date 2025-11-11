@@ -5,5 +5,5 @@ const router = Router()
 
 router.get('/:id', verifyToken, formulaController.getById)
 router.post('/', verifyToken, formulaController.createFormula)
-router.post('/:id/process', verifyToken, formulaController.processFormula)
+router.post('/process', verifyToken, formulaController.processFormulas)
 export default router

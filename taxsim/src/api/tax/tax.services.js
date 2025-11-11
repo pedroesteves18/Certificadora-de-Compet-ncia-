@@ -9,6 +9,7 @@ const taxService = {
             end: tax.end,
             factor: tax.factor,
             type: tax.type,
+            applies: tax.applies,
             formulaId: tax.formulaId
 
         })
@@ -30,18 +31,15 @@ const taxService = {
     },
     validateIntervals: (taxes) => {
 
-        const sorted = taxes.slice().sort((a, b) => a.initial - b.initial);
-
-        for (let i = 0; i < sorted.length - 1; i++) {
-            const current = sorted[i];
-            const next = sorted[i + 1];
-
-            if (current.end > next.initial) {
-            return false; 
-            }
+        for(const tax of taxes){
+            if (tax.initial == null || tax.end == null) continue
+            if (tax.initial > tax.end) return false;
         }
 
         return true;
+    },
+    applyTax: (tax, amount) => {
+        
     }
 
 }

@@ -9,7 +9,7 @@ const formulaService = {
     create: async (formulaData) => {
         const isTaxesValid = taxService.validateIntervals(formulaData.taxes || []);
         if (!isTaxesValid) {
-            throw new Error('Tax intervals are overlapping');
+            throw new Error('Tax intervals are not right');
         }
         let formula = await Formula.create({
             name: formulaData.name,
@@ -21,11 +21,10 @@ const formulaService = {
             }
             await taxService.bulkCreate(formulaData.taxes);
         }
-        if (formulaData.investments && formulaData.investments.length > 0) {
-            for (let investment of formulaData.investments) {
-                investment.formulaId = formula.id
-            }
-            await investmentService.bulkCreate(formulaData.investments);
+
+        if (formulaData.investment) {
+            formulaData.investment.formulaId = formula.id;
+            await investmentService.create(formulaData.investment);
         }
         return await formulaService.findById(formula.id)
 
@@ -45,51 +44,68 @@ const formulaService = {
             ]
         })
     },
-    processFormula: async (formula,firstMonth, lastMonth) => {
-        let total = 0;
-        let months = 12
-        const processed = {
-            initialAmount: 0,
-            values: []
-        };
+processFormula: async (formula, firstMonth, lastMonth) => {
+    let total = 0;
+    const processed = {
+        initialAmount: 0,
+        values: []
+    };
+
+    const inv = formula.Investments[0];
+    total = parseFloat(inv.amount);
+    processed.initialAmount = total;
+
+    for (let i = 1; i <= lastMonth; i++) {
+        let beforeTax = total;
 
         if (formula.Investments?.length > 0) {
             for (const inv of formula.Investments) {
-                total += parseFloat(inv.amount);
+                beforeTax *= parseFloat(inv.factor);
             }
-            processed.initialAmount = total;
         }
+        let gain = beforeTax - total;
+        let afterTax = total + gain;
 
-        for (let i = 1; i <= months; i++) {
-            if (formula.Investments?.length > 0) {
-                for (const inv of formula.Investments) {
-                    const monthlyFactor = parseFloat(inv.factor) / 100;
-                    total *= (1 + monthlyFactor);
+        if (formula.Taxes?.length > 0) {
+            for (const tax of formula.Taxes) {
+                let baseAmount;
+                if (tax.appliesTo === "capital") {
+                    baseAmount = afterTax;
+                } else {
+                    baseAmount = afterTax - total;
+                }
+
+                const taxed = taxProcessor.process(tax, baseAmount);
+
+                if (tax.appliesTo === "capital") {
+                    afterTax = taxed;
+                } else {
+                    afterTax = total + taxed;
                 }
             }
-
-            const totalBeforeTax = total;
-            if (formula.Taxes?.length > 0) {
-                for (const tax of formula.Taxes) {
-                    total = taxProcessor.process(tax , total);
-                }
-            }
-            const totalAfterTax = total;
-
-            processed.values.push({
-                month: i,
-                beforeTax: totalBeforeTax,
-                afterTax: totalAfterTax
-            });
         }
-        const data = [];
-        for(const entry of processed.values){
-            if((entry.month >= firstMonth) && (lastMonth && entry.month <= lastMonth)){
-                data.push(entry)
-            }
-        }
-        return data;
+
+        total = afterTax;
+
+        processed.values.push({
+            month: i,
+            beforeTax,
+            afterTax
+        });
     }
+    const data = [
+        {
+            formulaId: formula.id,
+            formulaName: formula.name,
+            initialAmount: processed.initialAmount
+        },
+        ...processed.values.filter(
+            entry => entry.month >= firstMonth && entry.month <= lastMonth
+        )
+    ];
+
+    return data;
+}
 
 
 }
