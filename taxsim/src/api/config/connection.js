@@ -1,7 +1,7 @@
 import sequelize from "./database.js";
-import User from "../user/model/user.js";
-import Formula from "../formula/model/formula.js";
-import Tax from "../tax/model/tax.js";
+import User from "../user/user.model.js";
+import Formula from "../formula/formula.model.js";
+import Tax from "../tax/tax.model.js";
 
 const tableAssociations = async (User,Formula,Tax) => {
   User.hasMany(Formula, {foreignKey: "userId"})

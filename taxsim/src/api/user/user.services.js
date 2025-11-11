@@ -1,4 +1,4 @@
-import User from '../model/user.js'
+import User from './user.model.js'
 import bcrypt from 'bcrypt'
 
 
@@ -14,8 +14,8 @@ const userService = {
 
         })
     },
-    findById: async (user) => {
-        return await User.findByPk(user.id)
+    findById: async (id) => {
+        return await User.findByPk(id)
     },
     findByEmail: async (user) => {
         return await User.findOne({
@@ -26,6 +26,16 @@ const userService = {
     },
     hashPassword: async (password) => {
         return await bcrypt.hash(password, parseInt(process.env.ROUNDS))
+    },
+    compare: async (user, password) => {
+        return await bcrypt.compare(password, user.password)
+    },
+    login: async (email, password) =>{
+        const user = await userService.findByEmail({email})
+        if(!user) return null
+        const isMatch = await userService.compare(user, password)
+        if(!isMatch) return null
+        return user
     }
 }
 

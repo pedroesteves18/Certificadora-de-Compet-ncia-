@@ -1,4 +1,4 @@
-import sequelize from "../../config/database.js";
+import sequelize from "../config/database.js";
 import { DataTypes } from "sequelize";
 
 
@@ -19,6 +19,14 @@ const Tax = await sequelize.define('Tax', {
     type: {
         type: DataTypes.ENUM("Percent","Fixed","Multiplier","Progressive","Regressive","Capped")
     },
+    formulaId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'Formulas',
+            key: 'id'
+        }
+    }
 },{
     tableName: 'Taxes'
 })
