@@ -21,7 +21,7 @@ const Tax = await sequelize.define('Tax', {
     },
     formulaId: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true,
         references: {
             model: 'Formulas',
             key: 'id'

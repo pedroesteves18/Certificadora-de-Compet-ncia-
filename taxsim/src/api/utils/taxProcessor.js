@@ -28,13 +28,13 @@ const TaxProcessor = {
   processPercent: (amount, factor) => {
     amount = parseFloat(amount);
     factor = parseFloat(factor);
-    return amount + (amount * (factor / 100));
+    return amount * (1 - factor / 100);
   },
 
   processFixed: (amount, factor) => {
     amount = parseFloat(amount);
     factor = parseFloat(factor);
-    return amount + factor;
+    return amount - factor;
   },
 
   processMultiplier: (amount, factor) => {
@@ -49,11 +49,11 @@ const TaxProcessor = {
     initial = parseFloat(initial);
     if (end !== null) end = parseFloat(end);
 
-    if (end && amount > end) return amount + (amount * (factor / 100));
+    if (end && amount > end) return amount * (1 - factor / 100);
 
     const progress = (amount - initial) / (end ? end - initial : amount);
     const progressiveFactor = Math.max(progress, 0) * factor;
-    return amount + (amount * (progressiveFactor / 100));
+    return amount * (1 - progressiveFactor / 100);
   },
 
   processRegressive: (amount, factor, initial = 0, end = null) => {
@@ -65,7 +65,7 @@ const TaxProcessor = {
 
     const progress = Math.min((amount - initial) / (end - initial), 1);
     const regressiveFactor = factor * (1 - progress);
-    return amount + (amount * (regressiveFactor / 100));
+    return amount * (1 - regressiveFactor / 100);
   },
 
   processCapped: (amount, factor, cap = null) => {
@@ -73,8 +73,8 @@ const TaxProcessor = {
     factor = parseFloat(factor);
     if (cap !== null) cap = parseFloat(cap);
 
-    const taxed = amount + (amount * (factor / 100));
-    if (cap && taxed > cap) return cap;
+    const taxed = amount * (1 - factor / 100);
+    if (cap && taxed < cap) return cap;
     return taxed;
   }
 };

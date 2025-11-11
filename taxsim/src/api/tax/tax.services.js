@@ -13,6 +13,13 @@ const taxService = {
 
         })
     },
+    bulkCreate: async (taxes) => {
+        const validateIntervals = taxService.validateIntervals(taxes);
+        if (!validateIntervals) {
+            throw new Error('Tax intervals are overlapping');
+        }
+        return await Tax.bulkCreate(taxes)
+    },
     findById: async (id) => {
         return await Tax.findByPk(id)
     },
@@ -23,18 +30,18 @@ const taxService = {
     },
     validateIntervals: (taxes) => {
 
-    const sorted = taxes.slice().sort((a, b) => a.initial - b.initial);
+        const sorted = taxes.slice().sort((a, b) => a.initial - b.initial);
 
-    for (let i = 0; i < sorted.length - 1; i++) {
-        const current = sorted[i];
-        const next = sorted[i + 1];
+        for (let i = 0; i < sorted.length - 1; i++) {
+            const current = sorted[i];
+            const next = sorted[i + 1];
 
-        if (current.end > next.initial) {
-        return false; 
+            if (current.end > next.initial) {
+            return false; 
+            }
         }
-    }
 
-    return true; k
+        return true;
     }
 
 }
