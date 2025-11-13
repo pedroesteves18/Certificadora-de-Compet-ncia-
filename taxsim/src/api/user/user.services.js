@@ -36,6 +36,22 @@ const userService = {
         const isMatch = await userService.compare(user, password)
         if(!isMatch) return null
         return user
+    },
+    update: async (id, userData) => {
+        const user = await User.findByPk(id)
+        if (!user) return null
+        const usedEmail = await userService.findByEmail({email: userData.email})
+        if(usedEmail && usedEmail.id !== id) throw new Error('Email já em uso!')
+        if(userData.password){
+            userData.password = await userService.hashPassword(userData.password)
+        }
+        return await user.update(userData)
+    },
+    delete: async (id) => {
+        const user = await User.findByPk(id)
+        if (!user) return null
+        await user.destroy()
+        return user
     }
 }
 

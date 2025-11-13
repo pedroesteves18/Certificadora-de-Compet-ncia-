@@ -18,6 +18,6 @@ export const verifyToken = async (req,res,next) => {
             
         next()
     }catch(err){
-        return res.status(500).send({msg:"Erro na verificação do token"})
+        return res.status(401).send({msg:"Erro na verificação do token"})
     }
 }

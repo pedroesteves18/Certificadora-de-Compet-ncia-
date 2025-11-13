@@ -23,6 +23,12 @@ const investmentService = {
         if (!investment) return null
         return await investment.update(investmentData)
     },
+    deleteInvestment: async (id) => {
+        const investment = await Investment.findByPk(id)
+        if (!investment) return null
+        await investment.destroy()
+        return true
+    }
 
 }
 

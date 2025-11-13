@@ -27,6 +27,27 @@ const userController = {
             return res.status(500).send({error:err.message})
         }
     },
+    update: async (req,res) => {
+        try{
+            const userId = req.user.id
+            const userData = req.body
+            const updatedUser = await userService.update(userId, userData)
+            if(!updatedUser) return res.status(400).send({msg:"Usuário não atualizado!"})
+            return res.status(200).send({msg:"Usuário atualizado!", user:updatedUser})
+        }catch(err){
+            return res.status(500).send({error: err.message})
+        }
+    },
+    delete: async (req,res) => {
+        try{
+            const userId = req.user.id
+            const deletedUser = await userService.delete(userId)
+            if(!deletedUser) return res.status(400).send({msg:"Usuário não deletado!"})
+            return res.status(200).send({msg:"Usuário deletado!", user:deletedUser})
+        }catch(err){
+            return res.status(500).send({error: err.message})
+        }
+    },
     getUser: async (req,res) => {
         try{
             const userId = req.user.id

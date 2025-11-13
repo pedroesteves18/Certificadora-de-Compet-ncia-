@@ -8,9 +8,9 @@ const tableAssociations = async (User,Formula,Tax,Investment) => {
   User.hasMany(Formula, {foreignKey: "userId"})
   Formula.belongsTo(User, {foreignKey: "userId"})
 
-  Formula.hasMany(Tax, {foreignKey: "formulaId"})
+  Formula.hasMany(Tax, {foreignKey: "formulaId", onDelete: 'CASCADE'})
   Tax.belongsTo(Formula, {foreignKey: "formulaId"})
-  Formula.hasMany(Investment, {foreignKey: "formulaId"})
+  Formula.hasMany(Investment, {foreignKey: "formulaId", onDelete: 'CASCADE'})
   Investment.belongsTo(Formula, {foreignKey: "formulaId"})
 }
 

@@ -6,4 +6,5 @@ const router = Router()
 router.get('/:id', verifyToken, formulaController.getById)
 router.post('/', verifyToken, formulaController.createFormula)
 router.post('/process', verifyToken, formulaController.processFormulas)
+router.delete('/:id', verifyToken, formulaController.deleteFormula)
 export default router

@@ -29,7 +29,12 @@ const formulaService = {
         return await formulaService.findById(formula.id)
 
     },
-    
+    delete: async (id) => {
+        const formula = await Formula.findByPk(id);
+        if (!formula) return null;
+        await formula.destroy();
+        return formula;
+    },
     findById: async (id) => {
         return await Formula.findByPk(id,{
             include: [
@@ -45,6 +50,8 @@ const formulaService = {
         })
     },
 processFormula: async (formula, firstMonth, lastMonth) => {
+    firstMonth = parseInt(firstMonth);
+    lastMonth = parseInt(lastMonth);
     let total = 0;
     const processed = {
         initialAmount: 0,
@@ -69,7 +76,7 @@ processFormula: async (formula, firstMonth, lastMonth) => {
         if (formula.Taxes?.length > 0) {
             for (const tax of formula.Taxes) {
                 let baseAmount;
-                if (tax.appliesTo === "capital") {
+                if (tax.applies === "capital") {
                     baseAmount = afterTax;
                 } else {
                     baseAmount = afterTax - total;
@@ -77,7 +84,7 @@ processFormula: async (formula, firstMonth, lastMonth) => {
 
                 const taxed = taxProcessor.process(tax, baseAmount);
 
-                if (tax.appliesTo === "capital") {
+                if (tax.applies === "capital") {
                     afterTax = taxed;
                 } else {
                     afterTax = total + taxed;

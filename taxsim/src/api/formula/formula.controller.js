@@ -60,6 +60,16 @@ const formulaController = {
         } catch (err) {
             return res.status(500).send({ error: err.message });
         }
+    },
+    deleteFormula: async (req, res) => {
+        try {
+            const id = req.params.id;
+            const deletedFormula = await formulaService.delete(id);
+            if (!deletedFormula) return res.status(404).send({ msg: "Fórmula não encontrada!" });
+            return res.status(200).send({ msg: "Fórmula deletada!", formula: deletedFormula });
+        } catch (err) {
+            return res.status(500).send({ error: err.message });
+        }
     }
 };
 

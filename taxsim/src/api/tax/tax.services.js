@@ -1,5 +1,4 @@
 import Tax from './tax.model.js'
-import bcrypt from 'bcrypt'
 
 
 const taxService = {
@@ -17,7 +16,7 @@ const taxService = {
     bulkCreate: async (taxes) => {
         const validateIntervals = taxService.validateIntervals(taxes);
         if (!validateIntervals) {
-            throw new Error('Tax intervals are overlapping');
+            throw new Error('Tax intervals are not right');
         }
         return await Tax.bulkCreate(taxes)
     },
@@ -26,8 +25,18 @@ const taxService = {
     },
     update: async (id, taxData) => {
         const tax = await Tax.findByPk(id)
+        const isValid = taxService.validateIntervals([taxData]);
+        if (!isValid) {
+            throw new Error('Tax intervals are not right');
+        }
         if (!tax) return null
         return await tax.update(taxData)
+    },
+    delete: async (id) => {
+        const tax = await Tax.findByPk(id)
+        if (!tax) return null
+        await tax.destroy()
+        return tax
     },
     validateIntervals: (taxes) => {
 
@@ -38,9 +47,6 @@ const taxService = {
 
         return true;
     },
-    applyTax: (tax, amount) => {
-        
-    }
 
 }
 
