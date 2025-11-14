@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build --turbopack",
+    "build": "next build --turbopack",  
     "start": "next start",
+    "start:api": "node ./src/api/app.js",
     "nodemon": "nodemon ./src/api/app.js",
     "docker:start": "docker compose up --build",
     "docker:restart": "docker compose down && docker compose up -d",
