@@ -1,4 +1,5 @@
 
+import { create } from "domain";
 import investmentService from "./investment.services.js";
 
 const investmentController = {
@@ -32,7 +33,16 @@ const investmentController = {
         } catch (error) {
             return res.status(500).json({ message: "Erro ao buscar investimento", error: error.message });
         }
-    }
+    },
+    createInvestment: async (req, res) => {
+        const data = req.body;
+        try {
+            const newInvestment = await investmentService.create(data);
+            return res.status(201).json(newInvestment);
+        } catch (error) {
+            return res.status(500).json({ message: "Erro ao criar investimento", error: error.message });
+        }   
+    },
 };
 
 export default investmentController;

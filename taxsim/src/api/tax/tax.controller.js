@@ -32,7 +32,20 @@ const taxController = {
         } catch (err) {
             return res.status(500).send({ error: err.message });
         }
-    }
+    },
+    createTax: async (req, res) => {
+        try {
+            const taxData = req.body;
+            const isValid = taxService.validateIntervals([taxData]);
+            if (!isValid) {
+                return res.status(400).send({ msg: "Intervalos de taxa inválidos!" });
+            }
+            const newTax = await taxService.create(taxData);
+            return res.status(201).send({ msg: "Taxa criada!", tax: newTax });
+        } catch (err) {
+            return res.status(500).send({ error: err.message });
+        }   
+    },
 }
 
 export default taxController

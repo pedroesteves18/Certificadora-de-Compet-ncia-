@@ -144,3 +144,43 @@
  *           enum: [Ação, Fundo Imobiliário, Renda Fixa, Criptomoeda]
  */
 
+/**
+ * @swagger
+ * /api/investments:
+ *   post:
+ *     summary: Cria um novo investimento
+ *     tags: [Investment]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: "Tesouro Selic 2027"
+ *               amount:
+ *                 type: number
+ *                 example: 1200
+ *               date:
+ *                 type: string
+ *                 format: date
+ *                 example: "2025-10-20"
+ *               type:
+ *                 type: string
+ *                 enum: [Ação, Fundo Imobiliário, Renda Fixa, Criptomoeda]
+ *     responses:
+ *       201:
+ *         description: Investimento criado com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Investment'
+ *       400:
+ *         description: Dados inválidos enviados
+ *       500:
+ *         description: Erro ao criar investimento
+ */
