@@ -167,11 +167,22 @@ export default function Calculadora() {
           </div>
         </div>
 
-        {/* Indicador de Carregamento ou Erro */}
+        {/* Indicador de Carregamento (skeleton shimmer) ou Erro */}
         {isLoading && (
-            <div className="text-center py-10">
-                <p className="text-blue-600 font-medium">Calculando...</p>
+          <div className="grid grid-cols-1 gap-8 mb-8">
+            {/* Resultado skeleton */}
+            <div className="bg-white p-8 rounded-3xl shadow-md text-center border-t-4 border-green-500 animate-pulse">
+              <div className="h-6 bg-gray-200 rounded w-3/4 mx-auto mb-4"></div>
+              <div className="h-8 bg-gray-200 rounded w-1/2 mx-auto mb-6"></div>
+              <div className="h-10 bg-gray-200 rounded w-2/3 mx-auto"></div>
             </div>
+
+            {/* Gráfico skeleton */}
+            <div className="bg-white p-8 rounded-3xl shadow-md border-t-4 border-blue-600 animate-pulse">
+              <div className="h-6 bg-gray-200 rounded w-1/3 mb-6"></div>
+              <div className="h-64 bg-gray-200 rounded"></div>
+            </div>
+          </div>
         )}
         {error && (
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl mb-12" role="alert">
