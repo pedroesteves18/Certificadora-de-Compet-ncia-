@@ -7,4 +7,8 @@ router.get('/:id', verifyToken, formulaController.getById)
 router.post('/', verifyToken, formulaController.createFormula)
 router.post('/process', verifyToken, formulaController.processFormulas)
 router.delete('/:id', verifyToken, formulaController.deleteFormula)
+
+// Rota pública para a calculadora
+router.post('/simulate_simple', formulaController.simulateSimple)
+
 export default router
