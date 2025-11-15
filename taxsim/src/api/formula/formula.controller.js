@@ -70,7 +70,57 @@ const formulaController = {
         } catch (err) {
             return res.status(500).send({ error: err.message });
         }
-    }
+    },
+
+    
+    simulateSimple: (req, res) => {
+        try {
+            const { valor, taxaAdm, taxaPerf, ir, anos, rendimentoAnual } = req.body;
+            
+            
+            const admFactor = taxaAdm / 100;
+            const perfFactor = taxaPerf / 100;
+            const irFactor = ir / 100;
+            const rendimentoFactor = rendimentoAnual / 100; 
+
+            let investimento = parseFloat(valor);
+            let historico = [];
+
+            for (let ano = 1; ano <= anos; ano++) {
+                let rendimentoBruto = investimento * rendimentoFactor;
+            
+                let taxaAdmValor = admFactor * investimento;
+                let rendimentoAposAdm = rendimentoBruto - taxaAdmValor;
+                
+                let taxaPerfValor = 0;
+                if (rendimentoAposAdm > 0) { 
+                    taxaPerfValor = perfFactor * rendimentoAposAdm;
+                }
+                let rendimentoLiquidoTaxas = rendimentoAposAdm - taxaPerfValor;
+
+                
+                let imposto = 0;
+                if (rendimentoLiquidoTaxas > 0) {
+                    imposto = irFactor * rendimentoLiquidoTaxas;
+                }
+                
+                
+                let rendimentoLiquidoFinal = rendimentoLiquidoTaxas - imposto;
+                investimento += rendimentoLiquidoFinal; 
+
+                historico.push({ ano, valor: investimento.toFixed(2) });
+            }
+
+            const resultadoFinal = investimento.toFixed(2);
+            
+            return res.status(200).send({ resultado: resultadoFinal, dadosGrafico: historico });
+
+        } catch (err) {
+            
+            const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido no servidor';
+            return res.status(500).send({ error: errorMessage });
+        }
+    },
 };
 
 export default formulaController;

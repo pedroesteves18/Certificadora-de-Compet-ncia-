@@ -15,40 +15,76 @@ import {
 import type { ChartData, FormField } from "@/types";
 
 export default function Calculadora() {
+  // Estados do formulário
   const [valor, setValor] = useState<number>(10000);
+  const [rendimentoAnual, setRendimentoAnual] = useState<number>(10); // Novo estado
   const [taxaAdm, setTaxaAdm] = useState<number>(1);
   const [taxaPerf, setTaxaPerf] = useState<number>(20);
   const [ir, setIr] = useState<number>(15);
   const [anos, setAnos] = useState<number>(5);
+  
+  // Estados de resultado
   const [resultado, setResultado] = useState<string | null>(null);
   const [dadosGrafico, setDadosGrafico] = useState<ChartData[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const calcular = (): void => {
-      let investimento = valor;
-      let historico: ChartData[] = [];
+    // Função assíncrona para buscar os dados da API
+    const calcular = async (): Promise<void> => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        // Define a URL base da API. No ambiente docker-compose, o backend estará em 'http://localhost:5000'
+        const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+        
+        const response = await fetch(`${apiBaseUrl}/api/formulas/simulate_simple`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                valor,
+                taxaAdm,
+                taxaPerf,
+                ir,
+                anos,
+                rendimentoAnual // Envia o novo estado para o backend
+            }),
+        });
 
-      for (let ano = 1; ano <= anos; ano++) {
-        let rendimentoBruto = investimento * 0.1; // Simulação de rendimento de 10% a.a.
-        let taxaAdmValor = (taxaAdm / 100) * investimento;
-        let rendimentoLiquido = rendimentoBruto - taxaAdmValor;
-        let taxaPerfValor =
-          rendimentoLiquido > 0 ? (taxaPerf / 100) * rendimentoLiquido : 0;
-        rendimentoLiquido -= taxaPerfValor;
-        investimento += rendimentoLiquido;
-        let imposto = (ir / 100) * rendimentoLiquido;
-        investimento -= imposto;
-        historico.push({ ano, valor: investimento.toFixed(2) });
+        if (!response.ok) {
+            const errData = await response.json();
+            throw new Error(errData.error || 'Falha ao buscar dados da API');
+        }
+
+        const data = await response.json();
+        setResultado(data.resultado);
+        setDadosGrafico(data.dadosGrafico);
+
+      } catch (err) {
+          const errorMessage = err instanceof Error ? err.message : 'Erro de conexão';
+          console.error(err);
+          setError(errorMessage);
+          setResultado(null);
+          setDadosGrafico([]);
+      } finally {
+        setIsLoading(false);
       }
-
-      setResultado(investimento.toFixed(2));
-      setDadosGrafico(historico);
     };
 
-    calcular();
-  }, [valor, taxaAdm, taxaPerf, ir, anos]);
+    // O debounce evita chamadas excessivas à API enquanto o usuário digita
+    const debounceTimer = setTimeout(() => {
+        calcular();
+    }, 500); // Aguarda 500ms após a última mudança
+
+    // Limpa o timer se o usuário fizer outra alteração
+    return () => clearTimeout(debounceTimer);
+
+  }, [valor, taxaAdm, taxaPerf, ir, anos, rendimentoAnual]); // Adiciona rendimentoAnual às dependências
 
 
+  // Define os campos do formulário
   const fields: FormField[] = [
     {
       label: "Valor Investido (R$)",
@@ -56,17 +92,22 @@ export default function Calculadora() {
       setter: setValor,
     },
     {
-      label: "Taxa de Administração (%)",
+      label: "Rendimento Anual Esperado (%)", // Novo campo
+      value: rendimentoAnual,
+      setter: setRendimentoAnual,
+    },
+    {
+      label: "Taxa de Administração (p.a. %)",
       value: taxaAdm,
       setter: setTaxaAdm,
     },
     {
-      label: "Taxa de Performance (%)",
+      label: "Taxa de Performance (sobre o ganho %)",
       value: taxaPerf,
       setter: setTaxaPerf,
     },
     {
-      label: "Imposto de Renda (%)",
+      label: "Imposto de Renda (sobre o ganho %)",
       value: ir,
       setter: setIr,
     },
@@ -126,8 +167,21 @@ export default function Calculadora() {
           </div>
         </div>
 
+        {/* Indicador de Carregamento ou Erro */}
+        {isLoading && (
+            <div className="text-center py-10">
+                <p className="text-blue-600 font-medium">Calculando...</p>
+            </div>
+        )}
+        {error && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl mb-12" role="alert">
+                <strong className="font-bold">Erro: </strong>
+                <span className="block sm:inline">{error}</span>
+            </div>
+        )}
+
         {/* Resultado e Gráfico */}
-        {dadosGrafico.length > 0 ? (
+        {!isLoading && !error && dadosGrafico.length > 0 && (
           <>
             <div className="bg-white p-8 rounded-3xl shadow-md mb-12 text-center border-t-4 border-green-500">
               <h2 className="text-2xl font-bold text-gray-800 mb-6">
@@ -178,12 +232,6 @@ export default function Calculadora() {
               </ResponsiveContainer>
             </div>
           </>
-        ) : (
-          <div className="text-center py-16">
-            <p className="text-gray-500">
-              Ajuste os valores para iniciar uma nova simulação.
-            </p>
-          </div>
         )}
       </div>
 
