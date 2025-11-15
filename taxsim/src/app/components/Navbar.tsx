@@ -4,16 +4,23 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { useAuth } from "../contexts/AuthContext"; // Importa o hook de autenticação
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
   const pathname = usePathname();
+  const { user, logout } = useAuth(); // Obtém o usuário e a função de logout do contexto
 
   const navLinks = [
     { href: "/", label: "Home" },
     { href: "/calculadora", label: "Calculadora" },
     { href: "/sobre", label: "Sobre" },
     { href: "/desenvolvedores", label: "Desenvolvedores" },
+  ];
+
+  // Links autenticados
+  const authLinks = [
+    { href: "/dashboard", label: "Dashboard" },
   ];
 
   return (
@@ -37,7 +44,7 @@ export default function Navbar() {
         </div>
 
         {/* Links Desktop */}
-        <div className="hidden md:flex gap-8">
+        <div className="hidden md:flex items-center gap-8">
           {navLinks.map((link) => (
             <Link
               key={link.href}
@@ -51,6 +58,50 @@ export default function Navbar() {
               {link.label}
             </Link>
           ))}
+
+          {/* Links Condicionais de Autenticação */}
+          {user ? (
+            <>
+              {authLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`transition font-medium ${
+                    pathname === link.href
+                      ? "text-blue-600"
+                      : "text-gray-700 hover:text-blue-600"
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              ))}
+              <button
+                onClick={logout}
+                className="font-medium text-gray-700 hover:text-blue-600 transition"
+              >
+                Sair
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className={`transition font-medium ${
+                  pathname === "/login"
+                    ? "text-blue-600"
+                    : "text-gray-700 hover:text-blue-600"
+                }`}
+              >
+                Login
+              </Link>
+              <Link
+                href="/register"
+                className="px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition"
+              >
+                Registrar
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Botão Mobile */}
@@ -80,6 +131,56 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
+
+            {/* Links Condicionais de Autenticação Mobile */}
+            {user ? (
+              <>
+                {authLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setMenuOpen(false)}
+                    className={`transition font-medium ${
+                      pathname === link.href
+                        ? "text-blue-600"
+                        : "text-gray-700 hover:text-blue-600"
+                    }`}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+                <button
+                  onClick={() => {
+                    logout();
+                    setMenuOpen(false);
+                  }}
+                  className="text-left font-medium text-gray-700 hover:text-blue-600 transition"
+                >
+                  Sair
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  onClick={() => setMenuOpen(false)}
+                  className={`transition font-medium ${
+                    pathname === "/login"
+                      ? "text-blue-600"
+                      : "text-gray-700 hover:text-blue-600"
+                  }`}
+                >
+                  Login
+                </Link>
+                <Link
+                  href="/register"
+                  onClick={() => setMenuOpen(false)}
+                  className="px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition text-center"
+                >
+                  Registrar
+                </Link>
+              </>
+            )}
           </div>
         </div>
       )}
