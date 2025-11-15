@@ -48,10 +48,10 @@ const GitMergeIcon = (props: React.SVGProps<SVGSVGElement>) => (
 );
 
 
-const DeveloperCard = ({ name, role, github, linkedin }: { name: string, role: string, github: string, linkedin: string }) => (
+const DeveloperCard = ({ name, role, github, linkedin, avatar }: { name: string, role: string, github: string, linkedin: string, avatar?: string }) => (
     <div className="bg-white p-6 rounded-2xl shadow-lg border hover:border-blue-500 hover:shadow-xl transition-all duration-300 hover:scale-105 flex flex-col items-center text-center">
-        <div className="w-24 h-24 rounded-full bg-gray-200 mb-4 flex items-center justify-center">
-            <UsersIcon className="w-12 h-12 text-gray-400" />
+        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-indigo-100 to-pink-100 mb-4 flex items-center justify-center text-3xl">
+            <span className="select-none">{avatar ?? '🙂'}</span>
         </div>
         <h3 className="text-lg font-bold text-gray-800">{name}</h3>
         <p className="text-blue-600 text-sm mt-1">{role}</p>
@@ -69,11 +69,11 @@ const DeveloperCard = ({ name, role, github, linkedin }: { name: string, role: s
 
 export default function Desenvolvedores() {
     const developers = [
-        { name: "Murillo Tadeu Amadeu", role: "Desenvolvedor Front-end", github: "#", linkedin: "#" },
-        { name: "João Pedro Koguishi", role: "Desenvolvedor Full-Stack", github: "#", linkedin: "#" },
-        { name: "Pedro Esteves", role: "Desenvolvedor Back-end & Infra", github: "#", linkedin: "#" },
-        { name: "Guilherme Oliveira", role: "Analista de Requisitos", github: "#", linkedin: "#" },
-        { name: "João Guilherme", role: "Analista de Dados", github: "#", linkedin: "#" },
+        { name: "Murillo Tadeu Amadeu", role: "Desenvolvedor Front-end", github: "https://github.com/amadeu-murillo", linkedin: "https://www.linkedin.com/in/murillo-amadeu-14b437270/", avatar: '🐼' },
+        { name: "João Pedro Koguishi", role: "Desenvolvedor Full-Stack", github: "https://github.com/joaokogs", linkedin: "https://www.linkedin.com/in/jo%C3%A3o-pedro-koguishi-958423221/", avatar: '🦊' },
+        { name: "Pedro Esteves", role: "Desenvolvedor Back-end & Infra", github: "https://github.com/pedroesteves18", linkedin: "https://www.linkedin.com/in/pedro-esteves-96a558239/", avatar: '🦆' },
+        { name: "Guilherme Oliveira", role: "Analista de Requisitos", github: "#", linkedin: "#", avatar: '🐶' },
+        { name: "João Guilherme", role: "Analista de Dados", github: "#", linkedin: "#", avatar: '🐱' },
     ];
 
     return (
@@ -151,7 +151,7 @@ export default function Desenvolvedores() {
 
                             <pre className="bg-black p-6 text-sm overflow-x-auto">
                                 <code className="whitespace-pre font-mono block">
-                                    <span className="text-gray-400">// Exemplo de requisição (futuro endpoint)</span>{'\n'}
+                                    <span className="text-gray-400">// Exemplo de requisição</span>{'\n'}
                                     <span className="text-blue-300">POST</span>
                                     <span> </span>
                                     <span className="text-purple-300">/api/calculadora</span>{'\n'}
