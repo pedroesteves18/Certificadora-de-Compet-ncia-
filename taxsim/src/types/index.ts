@@ -41,38 +41,3 @@ export interface TooltipProps {
   }>;
   label?: string;
 }
-
-// --- NOVOS TIPOS (Baseados nos modelos da API) ---
-
-export interface ApiUser {
-  id: number;
-  name: string;
-  email: string;
-  role: 'admin' | 'default';
-}
-
-export interface ApiInvestment {
-  id?: number;
-  amount: number;
-  factor: number;
-  type: "Ação" | "Fundo Imobiliário" | "Renda Fixa" | "Criptomoeda";
-  formulaId?: number;
-}
-
-export interface ApiTax {
-  id?: number;
-  initial: number | null;
-  end: number | null;
-  factor: number;
-  type: "Percent" | "Fixed" | "Multiplier" | "Progressive" | "Regressive" | "Capped";
-  applies: "gain" | "capital";
-  formulaId?: number;
-}
-
-export interface ApiFormula {
-  id: number;
-  name: string;
-  userId: number;
-  Investments: ApiInvestment[];
-  Taxes: ApiTax[];
-}

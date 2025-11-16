@@ -5,27 +5,12 @@ import Tax from "../tax/tax.model.js";
 import Investment from "../investment/investment.model.js";
 
 const tableAssociations = async (User,Formula,Tax,Investment) => {
-  
-  User.hasMany(Formula, {
-    foreignKey: "userId",
-    onDelete: 'CASCADE' 
-  })
+  User.hasMany(Formula, {foreignKey: "userId"})
   Formula.belongsTo(User, {foreignKey: "userId"})
 
-  
-  Formula.hasMany(Tax, {
-    foreignKey: "formulaId", 
-    onDelete: 'CASCADE', 
-    as: 'Taxes' 
-  })
+  Formula.hasMany(Tax, {foreignKey: "formulaId", onDelete: 'CASCADE'})
   Tax.belongsTo(Formula, {foreignKey: "formulaId"})
-
-  
-  Formula.hasMany(Investment, {
-    foreignKey: "formulaId", 
-    onDelete: 'CASCADE', 
-    as: 'Investments' 
-  })
+  Formula.hasMany(Investment, {foreignKey: "formulaId", onDelete: 'CASCADE'})
   Investment.belongsTo(Formula, {foreignKey: "formulaId"})
 }
 
@@ -37,9 +22,8 @@ async function connectDB() {
     await sequelize.authenticate();
     await tableAssociations(User,Formula,Tax,Investment)
     await sequelize.sync({alter: true, force: false});
-    console.log('Banco de dados conectado e sincronizado.');
   } catch (error) {
-    console.log("Erro ao conectar ao banco de dados:", error.message)
+    console.log(error.message)
     process.exit(1);
   }
 }
