@@ -48,10 +48,10 @@ const GitMergeIcon = (props: React.SVGProps<SVGSVGElement>) => (
 );
 
 
-const DeveloperCard = ({ name, role, github, linkedin }: { name: string, role: string, github: string, linkedin: string }) => (
+const DeveloperCard = ({ name, role, github, linkedin, avatar }: { name: string, role: string, github: string, linkedin: string, avatar?: string }) => (
     <div className="bg-white p-6 rounded-2xl shadow-lg border hover:border-blue-500 hover:shadow-xl transition-all duration-300 hover:scale-105 flex flex-col items-center text-center">
-        <div className="w-24 h-24 rounded-full bg-gray-200 mb-4 flex items-center justify-center">
-            <UsersIcon className="w-12 h-12 text-gray-400" />
+        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-indigo-100 to-pink-100 mb-4 flex items-center justify-center text-3xl">
+            <span className="select-none">{avatar ?? '🙂'}</span>
         </div>
         <h3 className="text-lg font-bold text-gray-800">{name}</h3>
         <p className="text-blue-600 text-sm mt-1">{role}</p>
@@ -69,11 +69,11 @@ const DeveloperCard = ({ name, role, github, linkedin }: { name: string, role: s
 
 export default function Desenvolvedores() {
     const developers = [
-        { name: "Murillo Tadeu Amadeu", role: "Desenvolvedor Front-end", github: "#", linkedin: "#" },
-        { name: "João Pedro Koguishi", role: "Desenvolvedor Full-Stack", github: "#", linkedin: "#" },
-        { name: "Pedro Esteves", role: "Desenvolvedor Back-end & Infra", github: "#", linkedin: "#" },
-        { name: "Guilherme Oliveira", role: "Analista de Requisitos", github: "#", linkedin: "#" },
-        { name: "João Guilherme", role: "Analista de Dados", github: "#", linkedin: "#" },
+        { name: "Murillo Tadeu Amadeu", role: "Desenvolvedor Front-end", github: "https://github.com/amadeu-murillo", linkedin: "https://www.linkedin.com/in/murillo-amadeu-14b437270/", avatar: '🐼' },
+        { name: "João Pedro Koguishi", role: "Desenvolvedor Full-Stack", github: "https://github.com/joaokogs", linkedin: "https://www.linkedin.com/in/jo%C3%A3o-pedro-koguishi-958423221/", avatar: '🦊' },
+        { name: "Pedro Esteves", role: "Desenvolvedor Back-end & Infra", github: "https://github.com/pedroesteves18", linkedin: "https://www.linkedin.com/in/pedro-esteves-96a558239/", avatar: '🦆' },
+        { name: "Guilherme Oliveira", role: "Analista de Requisitos", github: "#", linkedin: "#", avatar: '🐶' },
+        { name: "João Guilherme", role: "Analista de Dados", github: "#", linkedin: "#", avatar: '🐱' },
     ];
 
     return (
@@ -137,29 +137,82 @@ export default function Desenvolvedores() {
                             Guia Rápido da API
                         </h2>
                         <p className="text-center text-gray-400 mb-10">Abaixo um exemplo de como nossa API RESTful irá funcionar.</p>
-                        <pre className="bg-black/50 text-green-400 p-6 rounded-xl text-sm shadow-lg overflow-x-auto ring-1 ring-white/10">
-                            <code>
-{`// Exemplo de requisição (futuro endpoint)
-POST /api/calculadora
+                        <div className="bg-black rounded-xl shadow-2xl overflow-hidden ring-1 ring-white/10">
+                            <div className="bg-gray-700 px-4 py-3 flex items-center gap-2">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                                    <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                                </div>
+                                <div className="flex-1 text-center">
+                                    <span className="text-gray-300 text-sm font-medium">api-example.json</span>
+                                </div>
+                            </div>
 
-{
-  "tipo": "renda_fixa",
-  "valor_investido": 10000,
-  "dias": 365,
-  "taxa_corretora": 0.5
-}
-
-// Resposta esperada
-{
-  "valor_bruto": 11000,
-  "impostos": {
-    "ir": 150,
-    "iof": 0
-  },
-  "valor_liquido": 10850
-}`}
-                            </code>
-                        </pre>
+                            <pre className="bg-black p-6 text-sm overflow-x-auto">
+                                <code className="whitespace-pre font-mono block">
+                                    <span className="text-gray-400">// Exemplo de requisição</span>{'\n'}
+                                    <span className="text-blue-300">POST</span>
+                                    <span> </span>
+                                    <span className="text-purple-300">/api/calculadora</span>{'\n'}
+                                    {'\n'}
+                                    <span className="text-yellow-300">{`{`}</span>{'\n'}
+                                    <span>
+                                        <span className="text-green-300">  "tipo"</span>
+                                        <span className="text-white">: </span>
+                                        <span className="text-orange-300">"renda_fixa"</span>
+                                        <span className="text-white">,</span>
+                                    </span>{'\n'}
+                                    <span>
+                                        <span className="text-green-300">  "valor_investido"</span>
+                                        <span className="text-white">: </span>
+                                        <span className="text-cyan-300">10000</span>
+                                        <span className="text-white">,</span>
+                                    </span>{'\n'}
+                                    <span>
+                                        <span className="text-green-300">  "dias"</span>
+                                        <span className="text-white">: </span>
+                                        <span className="text-cyan-300">365</span>
+                                        <span className="text-white">,</span>
+                                    </span>{'\n'}
+                                    <span>
+                                        <span className="text-green-300">  "taxa_corretora"</span>
+                                        <span className="text-white">: </span>
+                                        <span className="text-cyan-300">0.5</span>
+                                    </span>{'\n'}
+                                    <span className="text-yellow-300">{`}`}</span>{'\n'}
+                                    {'\n'}
+                                    <span className="text-gray-400">// Resposta esperada</span>{'\n'}
+                                    <span className="text-yellow-300">{`{`}</span>{'\n'}
+                                    <span>
+                                        <span className="text-green-300">  "valor_bruto"</span>
+                                        <span className="text-white">: </span>
+                                        <span className="text-cyan-300">11000</span>
+                                        <span className="text-white">,</span>
+                                    </span>{'\n'}
+                                    <span className="text-green-300">  "impostos": </span>
+                                    <span className="text-yellow-300">{`{`}</span>{'\n'}
+                                    <span>
+                                        <span className="text-green-300">    "ir"</span>
+                                        <span className="text-white">: </span>
+                                        <span className="text-cyan-300">150</span>
+                                        <span className="text-white">,</span>
+                                    </span>{'\n'}
+                                    <span>
+                                        <span className="text-green-300">    "iof"</span>
+                                        <span className="text-white">: </span>
+                                        <span className="text-cyan-300">0</span>
+                                    </span>{'\n'}
+                                    <span className="text-yellow-300">  {`}`}</span>{'\n'}
+                                    <span>
+                                        <span className="text-green-300">  "valor_liquido"</span>
+                                        <span className="text-white">: </span>
+                                        <span className="text-cyan-300">10850</span>
+                                    </span>{'\n'}
+                                    <span className="text-yellow-300">{`}`}</span>
+                                </code>
+                            </pre>
+                        </div>
                     </div>
                 </section>
 
