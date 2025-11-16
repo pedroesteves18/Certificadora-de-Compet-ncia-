@@ -61,37 +61,33 @@ processFormula: async (formula, firstMonth, lastMonth) => {
     const inv = formula.Investments[0];
     total = parseFloat(inv.amount);
     processed.initialAmount = total;
+    let beforeTax 
+    let gain 
 
     for (let i = 1; i <= lastMonth; i++) {
-        let beforeTax = total;
-
-        if (formula.Investments?.length > 0) {
-            for (const inv of formula.Investments) {
-                beforeTax *= parseFloat(inv.factor);
-            }
+        if(total >=0){
+             beforeTax = total * inv.factor;
+             gain = beforeTax - total;
+        } else {
+            beforeTax = total
+            gain = 0
         }
-        let gain = beforeTax - total;
-        let afterTax = total + gain;
 
-        if (formula.Taxes?.length > 0) {
-            for (const tax of formula.Taxes) {
-                let baseAmount;
-                if (tax.applies === "capital") {
-                    baseAmount = afterTax;
-                } else {
-                    baseAmount = afterTax - total;
-                }
+        let gainAfterTax = gain;
+        let capitalAfterTax = total;
 
-                const taxed = taxProcessor.process(tax, baseAmount);
+        for (const tax of formula.Taxes) {
 
-                if (tax.applies === "capital") {
-                    afterTax = taxed;
-                } else {
-                    afterTax = total + taxed;
-                }
+            if (tax.applies === "gain") {
+                gainAfterTax = gainAfterTax > 0 ? taxProcessor.process(tax, gainAfterTax) : gainAfterTax
+            }
+
+            if (tax.applies === "capital") {
+                capitalAfterTax = taxProcessor.process(tax, capitalAfterTax);
             }
         }
 
+        let afterTax = capitalAfterTax + gainAfterTax;
         total = afterTax;
 
         processed.values.push({
@@ -100,6 +96,7 @@ processFormula: async (formula, firstMonth, lastMonth) => {
             afterTax
         });
     }
+
     const data = [
         {
             formulaId: formula.id,
@@ -112,8 +109,56 @@ processFormula: async (formula, firstMonth, lastMonth) => {
     ];
 
     return data;
-}
+},
+generateCSV: async (formulaId, firstMonth, lastMonth) => {
+    const formulaToProcess = await formulaService.findById(formulaId);
+    if (!formulaToProcess) throw new Error("Fórmula não encontrada!");
 
+    const processedData = await formulaService.processFormula(
+        formulaToProcess,
+        firstMonth,
+        lastMonth
+    );
+
+    // Cabeçalhos
+    const headers = [
+        'Mês',
+        'Valor antes das taxas',
+        'Tipo',
+        'Aplicação',
+        'Fator',
+        'Range',
+        'Valor após as taxas'
+    ];
+
+    const rows = [];
+
+    // processedData[0] é metadata da fórmula → pular
+    console.log(processedData[0])
+    rows.push([0,processedData[0].initialAmount,0,0,0,0,processedData[0].initialAmount])
+    for (let i = 1; i < processedData.length; i++) {
+        const data = processedData[i];
+        for (const tax of formulaToProcess.Taxes) {
+            rows.push([
+                data.month,
+                data.beforeTax.toFixed(2),
+                tax.type,
+                tax.applies,
+                tax.factor,
+                `${tax.initial ?? ''} - ${tax.end ?? ''}`,
+                data.afterTax.toFixed(2)
+            ]);
+        }
+    }
+
+    // Gera conteúdo CSV
+    const csvContent =
+        headers.join(";") +
+        "\n" +
+        rows.map(r => r.join(";")).join("\n");
+
+    return csvContent;
+}
 
 }
 

@@ -70,7 +70,21 @@ const formulaController = {
         } catch (err) {
             return res.status(500).send({ error: err.message });
         }
-    }
+    },
+    generateCSV: async (req, res) => {
+        try {
+            const id = req.params.id;
+            const firstMonth = req.query.firstMonth;
+            const lastMonth = req.query.lastMonth;
+            const csvData = await formulaService.generateCSV(id, firstMonth, lastMonth);
+            if (!csvData) return res.status(404).send({ msg: "Fórmula não encontrada ou erro ao gerar CSV!" });
+            res.setHeader('Content-Disposition', 'attachment; filename=formula.csv');
+            res.setHeader('Content-Type', 'text/csv');
+            return res.status(200).send(csvData);
+        } catch (err) {
+            return res.status(500).send({ error: err.message });
+        }   
+    },
 };
 
 export default formulaController;

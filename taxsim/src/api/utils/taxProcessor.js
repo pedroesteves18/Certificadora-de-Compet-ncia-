@@ -1,40 +1,51 @@
 const taxProcessor = {
-  process(tax, amount) {
+process(tax, amount) {
+
     const type = tax.type;
     const factor = parseFloat(tax.factor);
     const initial = tax.initial ?? null;
     const end = tax.end ?? null;
-    const numericAmount = parseFloat(amount);
 
+    let numericAmount = parseFloat(amount);
+
+    // 📌 TRATAMENTO UNIVERSAL PARA NEGATIVOS
+    // Se o valor é negativo, a taxa aumenta a dívida (independente do tipo)
+    if (numericAmount < 0) {
+        const increase = Math.abs(numericAmount) * (factor / 100);
+        return numericAmount - increase; 
+    }
+
+    // 📌 FAIXA DE APLICAÇÃO
     if (initial !== null && end !== null) {
-      if (numericAmount < initial || numericAmount > end) {
-        return numericAmount;
-      }
+        if (numericAmount < initial || numericAmount > end) {
+            return numericAmount;
+        }
     }
 
+    // 📌 NORMAL PARA CASOS POSITIVOS
     switch (type) {
-      case "Percent":
-        return numericAmount * (1 - factor / 100);
+        case "Percent":
+            return numericAmount * (1 - factor / 100);
 
-      case "Fixed":
-        return Math.max(numericAmount - factor, 0);
+        case "Fixed":
+            return numericAmount - factor;
 
-      case "Multiplier":
-        return numericAmount * factor;
+        case "Multiplier":
+            return numericAmount * factor;
 
-      case "Progressive":
-        return this.processProgressive(numericAmount, factor, initial, end);
+        case "Progressive":
+            return this.processProgressive(numericAmount, factor, initial, end);
 
-      case "Regressive":
-        return this.processRegressive(numericAmount, factor, initial, end);
+        case "Regressive":
+            return this.processRegressive(numericAmount, factor, initial, end);
 
-      case "Capped":
-        return this.processCapped(numericAmount, factor);
+        case "Capped":
+            return this.processCapped(numericAmount, factor);
 
-      default:
-        return numericAmount;
+        default:
+            return numericAmount;
     }
-  },
+},
 
   processProgressive(amount, factor, initial = 0, end = null) {
     if (!end) return amount * (1 - factor / 100);
