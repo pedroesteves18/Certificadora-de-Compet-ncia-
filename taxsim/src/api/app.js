@@ -13,7 +13,7 @@ dotenv.config()
 const app = express();
 
 const corsOptions = {
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: process.env.FRONTEND_URL,
     optionsSuccessStatus: 200
 };
 app.use(cors(corsOptions));

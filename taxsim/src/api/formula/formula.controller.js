@@ -1,4 +1,6 @@
 import formulaService from "./formula.services.js";
+import { Readable } from 'stream'
+import csv from 'csv-parser'
 
 const formulaController = {
     getById: async (req, res) => {
@@ -9,6 +11,15 @@ const formulaController = {
             return res.status(200).send({ formula: formula });
         } catch (err) {
             return res.status(500).send({ error: err.message });
+        }
+    },
+    getFormulas: async (req,res) => {
+        try{
+            const userId = req.user.id
+            const formulas = await formulaService.getFormulasByUser(userId)
+            return res.status(200).send({formulas: formulas})
+        }catch(err){
+            return res.status(500).send({error: err.message})
         }
     },
     createFormula: async (req, res) => {
