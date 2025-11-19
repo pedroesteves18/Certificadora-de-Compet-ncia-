@@ -15,40 +15,78 @@ import {
 import type { ChartData, FormField } from "@/types";
 
 export default function Calculadora() {
+  // Estados do formulário
   const [valor, setValor] = useState<number>(10000);
+  const [rendimentoAnual, setRendimentoAnual] = useState<number>(10); // Novo estado
   const [taxaAdm, setTaxaAdm] = useState<number>(1);
   const [taxaPerf, setTaxaPerf] = useState<number>(20);
   const [ir, setIr] = useState<number>(15);
   const [anos, setAnos] = useState<number>(5);
+  
+  // Estados de resultado
   const [resultado, setResultado] = useState<string | null>(null);
   const [dadosGrafico, setDadosGrafico] = useState<ChartData[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Função para calcular os investimentos localmente
     const calcular = (): void => {
-      let investimento = valor;
-      let historico: ChartData[] = [];
+      setIsLoading(true);
+      setError(null);
+      
+      try {
+        let total = valor;
+        const dadosGrafico: ChartData[] = [];
 
-      for (let ano = 1; ano <= anos; ano++) {
-        let rendimentoBruto = investimento * 0.1; // Simulação de rendimento de 10% a.a.
-        let taxaAdmValor = (taxaAdm / 100) * investimento;
-        let rendimentoLiquido = rendimentoBruto - taxaAdmValor;
-        let taxaPerfValor =
-          rendimentoLiquido > 0 ? (taxaPerf / 100) * rendimentoLiquido : 0;
-        rendimentoLiquido -= taxaPerfValor;
-        investimento += rendimentoLiquido;
-        let imposto = (ir / 100) * rendimentoLiquido;
-        investimento -= imposto;
-        historico.push({ ano, valor: investimento.toFixed(2) });
+        for (let ano = 1; ano <= anos; ano++) {
+          // Aplica o rendimento anual
+          const valorComRendimento = total * (1 + rendimentoAnual / 100);
+          const ganho = valorComRendimento - total;
+          
+          // Calcula as taxas
+          const taxaAdministracao = valorComRendimento * (taxaAdm / 100);
+          const taxaPerformance = ganho > 0 ? ganho * (taxaPerf / 100) : 0;
+          const impostoRenda = ganho > 0 ? ganho * (ir / 100) : 0;
+          
+          // Valor final após todas as deduções
+          total = valorComRendimento - taxaAdministracao - taxaPerformance - impostoRenda;
+          
+          dadosGrafico.push({
+            ano,
+            valor: total.toFixed(2)
+          });
+        }
+
+        setResultado(total.toLocaleString('pt-BR', { 
+          minimumFractionDigits: 2, 
+          maximumFractionDigits: 2 
+        }));
+        setDadosGrafico(dadosGrafico);
+
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Erro no cálculo';
+        console.error(err);
+        setError(errorMessage);
+        setResultado(null);
+        setDadosGrafico([]);
+      } finally {
+        setIsLoading(false);
       }
-
-      setResultado(investimento.toFixed(2));
-      setDadosGrafico(historico);
     };
 
-    calcular();
-  }, [valor, taxaAdm, taxaPerf, ir, anos]);
+    // O debounce evita cálculos excessivos enquanto o usuário digita
+    const debounceTimer = setTimeout(() => {
+      calcular();
+    }, 300); // Aguarda 300ms após a última mudança
+
+    // Limpa o timer se o usuário fizer outra alteração
+    return () => clearTimeout(debounceTimer);
+
+  }, [valor, taxaAdm, taxaPerf, ir, anos, rendimentoAnual]); // Adiciona rendimentoAnual às dependências
 
 
+  // Define os campos do formulário
   const fields: FormField[] = [
     {
       label: "Valor Investido (R$)",
@@ -56,17 +94,22 @@ export default function Calculadora() {
       setter: setValor,
     },
     {
-      label: "Taxa de Administração (%)",
+      label: "Rendimento Anual Esperado (%)", // Novo campo
+      value: rendimentoAnual,
+      setter: setRendimentoAnual,
+    },
+    {
+      label: "Taxa de Administração (p.a. %)",
       value: taxaAdm,
       setter: setTaxaAdm,
     },
     {
-      label: "Taxa de Performance (%)",
+      label: "Taxa de Performance (sobre o ganho %)",
       value: taxaPerf,
       setter: setTaxaPerf,
     },
     {
-      label: "Imposto de Renda (%)",
+      label: "Imposto de Renda (sobre o ganho %)",
       value: ir,
       setter: setIr,
     },
@@ -126,8 +169,32 @@ export default function Calculadora() {
           </div>
         </div>
 
+        {/* Indicador de Carregamento (skeleton shimmer) ou Erro */}
+        {isLoading && (
+          <div className="grid grid-cols-1 gap-8 mb-8">
+            {/* Resultado skeleton */}
+            <div className="bg-white p-8 rounded-3xl shadow-md text-center border-t-4 border-green-500 animate-pulse">
+              <div className="h-6 bg-gray-200 rounded w-3/4 mx-auto mb-4"></div>
+              <div className="h-8 bg-gray-200 rounded w-1/2 mx-auto mb-6"></div>
+              <div className="h-10 bg-gray-200 rounded w-2/3 mx-auto"></div>
+            </div>
+
+            {/* Gráfico skeleton */}
+            <div className="bg-white p-8 rounded-3xl shadow-md border-t-4 border-blue-600 animate-pulse">
+              <div className="h-6 bg-gray-200 rounded w-1/3 mb-6"></div>
+              <div className="h-64 bg-gray-200 rounded"></div>
+            </div>
+          </div>
+        )}
+        {error && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl mb-12" role="alert">
+                <strong className="font-bold">Erro: </strong>
+                <span className="block sm:inline">{error}</span>
+            </div>
+        )}
+
         {/* Resultado e Gráfico */}
-        {dadosGrafico.length > 0 ? (
+        {!isLoading && !error && dadosGrafico.length > 0 && (
           <>
             <div className="bg-white p-8 rounded-3xl shadow-md mb-12 text-center border-t-4 border-green-500">
               <h2 className="text-2xl font-bold text-gray-800 mb-6">
@@ -178,12 +245,6 @@ export default function Calculadora() {
               </ResponsiveContainer>
             </div>
           </>
-        ) : (
-          <div className="text-center py-16">
-            <p className="text-gray-500">
-              Ajuste os valores para iniciar uma nova simulação.
-            </p>
-          </div>
         )}
       </div>
 
