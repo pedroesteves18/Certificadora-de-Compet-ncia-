@@ -54,7 +54,17 @@ const formulaService = {
         return await Formula.findAll({
             where: {
                 userId: userId
-            }
+            },
+            include: [
+                {
+                    model: Tax,
+                    as: 'Taxes'
+                },
+                {
+                    model: Investment,
+                    as: 'Investments'
+                }
+            ]
         })
     },
     processFormula: async (formula, firstMonth, lastMonth) => {

@@ -41,8 +41,8 @@ const formulaController = {
     processFormulas: async (req,res) => {
         try{
             let id = req.query.id
-            const firstMonth = req.query.firstMonth
-            const lastMonth = req.query.lastMonth
+            let firstMonth = req.query.firstMonth ? parseInt(req.query.firstMonth) : 1;
+            let lastMonth = req.query.lastMonth ? parseInt(req.query.lastMonth) : 12;
             if(!firstMonth || !lastMonth){
                 return res.status(400).send({msg:"É necessário informar firstMonth e lastMonth"})
             } 
@@ -52,7 +52,6 @@ const formulaController = {
                 const processedAmount = await formulaService.processFormula(formula, firstMonth, lastMonth);
                 return res.status(200).send({ processedAmount: processedAmount });
             }
-
             if (typeof id === 'string') {
                 if (!/^[0-9,]+$/.test(id)) {
                     return res.status(400).send({ msg: "IDs inválidos" });
@@ -69,6 +68,7 @@ const formulaController = {
             }
             return res.status(200).send({ processedAmounts: processed });
         } catch (err) {
+            console.log(err.message)
             return res.status(500).send({ error: err.message });
         }
     },
