@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start:api": "node ./src/api/app.js",
+    "start": "node ./src/api/app.js",
     "nodemon": "nodemon ./src/api/app.js",
     "docker:start": "docker compose up --build",
     "docker:restart": "docker compose down && docker compose up -d"
