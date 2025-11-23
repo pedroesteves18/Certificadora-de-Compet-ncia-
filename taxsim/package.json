@@ -7,7 +7,11 @@
     "start": "node ./src/api/app.js",
     "nodemon": "nodemon ./src/api/app.js",
     "docker:start": "docker compose up --build",
-    "docker:restart": "docker compose down && docker compose up -d"
+    "docker:restart": "docker compose down && docker compose up -d",
+    "dev": "next dev",
+    "build": "next build",
+    "start:front": "next start",
+    "lint": "eslint"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
@@ -23,7 +27,10 @@
     "router": "^2.2.0",
     "sequelize": "^6.37.7",
     "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.1"
+    "swagger-ui-express": "^5.0.1",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "recharts": "^3.4.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
@@ -31,6 +38,10 @@
     "eslint": "^9",
     "eslint-config-next": "15.5.2",
     "nodemon": "^3.1.10",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "@tailwindcss/postcss": "^4",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "tailwindcss": "^4"
   }
 }
