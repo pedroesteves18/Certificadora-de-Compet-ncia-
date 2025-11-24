@@ -1,5 +1,5 @@
 import Link from "next/link";
-
+import apiClient from "../../services/apiClient";
 interface FormulaCardProps {
   formula: any;
   token: string | null;
@@ -11,12 +11,8 @@ export default function FormulaCard({ formula, token, onDelete }: FormulaCardPro
     if (!confirm(`Deseja realmente excluir a fórmula "${formula.name}"?`)) return;
     
     try {
-      const response = await fetch(`/api/formulas/${formula.id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` }
-      });
+        await apiClient.delete(`/api/formulas/${formula.id}`, token);
       
-      if (!response.ok) throw new Error("Erro ao excluir fórmula");
       
       onDelete(formula.id);
     } catch (err) {

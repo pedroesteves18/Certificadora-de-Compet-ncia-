@@ -84,7 +84,7 @@ const formulaService = {
 
         for (let i = 1; i <= lastMonth; i++) {
             if(total >=0){
-                beforeTax = total * inv.factor;
+                beforeTax = total + (total * (inv.factor / 100));
                 gain = beforeTax - total;
             } else {
                 beforeTax = total
@@ -138,7 +138,6 @@ const formulaService = {
             lastMonth
         );
 
-        // Cabeçalhos
         const headers = [
             'Mês',
             'Valor antes das taxas',
@@ -151,9 +150,6 @@ const formulaService = {
         ];
 
         const rows = [];
-
-        // processedData[0] é metadata da fórmula → pular
-        console.log(processedData[0])
         rows.push([0,processedData[0].initialAmount,0,0,0,0,0,processedData[0].initialAmount])
         for (let i = 1; i < processedData.length; i++) {
             const data = processedData[i];

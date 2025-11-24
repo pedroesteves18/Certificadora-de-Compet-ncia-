@@ -27,7 +27,7 @@ export function TaxForm({ taxForm, setTaxForm }: TaxFormProps) {
         />
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-600 mb-2">Fator (%)</label>
+        <label className="block text-sm font-medium text-gray-600 mb-2">Fator</label>
         <input
           type="number"
           placeholder="Ex: 15"

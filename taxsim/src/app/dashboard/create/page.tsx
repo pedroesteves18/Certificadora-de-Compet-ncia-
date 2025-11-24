@@ -321,7 +321,7 @@ export default function CreateFormulaPage() {
 
                     <div>
                       <label className="block text-xs font-medium text-black mb-1">
-                        Fator (%)
+                        Fator
                       </label>
                       <input
                         type="number"
