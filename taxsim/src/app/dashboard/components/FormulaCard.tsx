@@ -20,6 +20,14 @@ export default function FormulaCard({ formula, token, onDelete }: FormulaCardPro
       alert("Erro ao excluir a fórmula.");
     }
   };
+  const taxTypeLabels: Record<string, string> = {
+    Percent: "Percentual",
+    Fixed: "Fixa",
+    Multiplier: "Multiplicador",
+    Progressive: "Progressiva",
+    Regressive: "Regressiva",
+    Capped: "Com Teto",
+  };
 
   return (
     <div className="bg-white p-6 rounded-3xl shadow-xl border border-gray-100 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 group">
@@ -60,7 +68,7 @@ export default function FormulaCard({ formula, token, onDelete }: FormulaCardPro
           <div className="space-y-2">
             {formula.Taxes.slice(0, 2).map((t: any) => (
               <div key={t.id} className="flex justify-between items-center text-xs">
-                <span className="text-purple-600 font-medium">{t.type}:</span>
+                <span className="text-purple-600 font-medium">{taxTypeLabels[t.type] ?? t.type}:</span>
                 <span className="font-bold text-purple-900">
                   {t.factor}{t.type === "Percent" ? "%" : ""} • {t.applies === "gain" ? "Ganho" : "Capital"}
                 </span>

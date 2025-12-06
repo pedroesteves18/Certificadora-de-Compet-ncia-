@@ -45,6 +45,14 @@ const taxTypes: LocalTax["type"][] = [
   "Regressive",
   "Capped",
 ];
+const taxTypeLabels: Record<LocalTax["type"], string> = {
+  Percent: "Percentual",
+  Fixed: "Fixa",
+  Multiplier: "Multiplicador",
+  Progressive: "Progressiva",
+  Regressive: "Regressiva",
+  Capped: "Com Teto",
+};
 
 const taxApplies: LocalTax["applies"][] = ["gain", "capital"];
 
@@ -287,7 +295,7 @@ export default function CreateFormulaPage() {
                       >
                         {taxTypes.map((t) => (
                           <option key={t} value={t}>
-                            {t}
+                            {taxTypeLabels[t]}
                           </option>
                         ))}
                       </select>
