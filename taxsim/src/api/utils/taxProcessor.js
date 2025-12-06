@@ -1,70 +1,94 @@
 const taxProcessor = {
-process(tax, amount) {
 
-    const type = tax.type;
-    const factor = parseFloat(tax.factor);
-    const initial = tax.initial ?? null;
-    const end = tax.end ?? null;
+  process(tax, amount, day = null) {
+    if (amount < 0) {
+      return { before: amount, tax: 0, after: amount };
+    }
+    const before = Number(amount);
 
-    let numericAmount = parseFloat(amount);
-
-    // 📌 TRATAMENTO UNIVERSAL PARA NEGATIVOS
-    // Se o valor é negativo, a taxa aumenta a dívida (independente do tipo)
-    if (numericAmount < 0) {
-        const increase = Math.abs(numericAmount) * (factor / 100);
-        return numericAmount - increase; 
+    if (tax.name === "IOF" && day !== null && day <= 30) {
+      const rate = this.iofRate(day) / 100;
+      const taxValue = before * rate;
+      const after = before - taxValue;
+      return { before, tax: taxValue, after };
     }
 
-    // 📌 FAIXA DE APLICAÇÃO
-    if (initial !== null && end !== null) {
-        if (numericAmount < initial || numericAmount > end) {
-            return numericAmount;
-        }
+    if(tax.name === "Corretagem") {
+      let taxValue = 0;
+      if(tax.mode === "fixed") {
+        taxValue = Number(tax.value);
+      } else if(tax.mode === "percent") {
+        taxValue = before * (Number(tax.value) / 100);
+      }
+      const after = before - taxValue;
+      return { before, tax: taxValue, after };
     }
 
-    // 📌 NORMAL PARA CASOS POSITIVOS
-    switch (type) {
-        case "Percent":
-            return numericAmount * (1 - factor / 100);
+    const factor = Number(tax.value) / 100;
 
-        case "Fixed":
-            return numericAmount - factor;
+    switch (tax.mode) {
+      case "percent": {
+        const taxValue = before * factor;
+        const after = before - taxValue;
+        return { before, tax: taxValue, after };
+      }
 
-        case "Multiplier":
-            return numericAmount * factor;
+      case "fixed": {
+        const taxValue = factor; 
+        const after = before - taxValue;
+        return { before, tax: taxValue, after };
+      }
 
-        case "Progressive":
-            return this.processProgressive(numericAmount, factor, initial, end);
+      case "multiplier": {
+        const after = before * (factor);
+        return { before, tax: before - after, after };
+      }
 
-        case "Regressive":
-            return this.processRegressive(numericAmount, factor, initial, end);
+      case "progressive":
+        return this.applyProgressive(before, factor, tax.initial, tax.end);
 
-        case "Capped":
-            return this.processCapped(numericAmount, factor);
+      case "regressive":
+        return this.applyRegressive(before, factor, tax.initial, tax.end);
 
-        default:
-            return numericAmount;
+      case "capped": {
+        const after = before * (1 - factor);
+        const taxValue = before - after;
+        return { before, tax: taxValue, after };
+      }
+
+      default:
+        return { before, tax: 0, after: before };
     }
-},
-
-  processProgressive(amount, factor, initial = 0, end = null) {
-    if (!end) return amount * (1 - factor / 100);
-    const progress = Math.min((amount - initial) / (end - initial), 1);
-    const effectiveFactor = progress * factor;
-    return amount * (1 - effectiveFactor / 100);
   },
 
-  processRegressive(amount, factor, initial = 0, end = null) {
-    if (!end) end = amount * 2;
+  applyProgressive(amount, factor, initial = 0, end = null) {
+    if (!end) end = initial + 1;
+    const before = amount;
     const progress = Math.min((amount - initial) / (end - initial), 1);
-    const effectiveFactor = factor * (1 - progress);
-    return amount * (1 - effectiveFactor / 100);
+    const effective = progress * factor;
+    const taxValue = amount * (effective / 100);
+    return { before, tax: taxValue, after: before - taxValue };
   },
 
-  processCapped(amount, factor) {
-    const cappedValue = amount * (1 - factor / 100);
-    return Math.max(cappedValue, 0);
+  applyRegressive(amount, factor, initial = 0, end = null) {
+    if (!end) end = initial + 1;
+    const before = amount;
+    const progress = Math.min((amount - initial) / (end - initial), 1);
+    const effective = factor * (1 - progress);
+    const taxValue = amount * (effective / 100);
+    return { before, tax: taxValue, after: before - taxValue };
+  },
+
+  iofRate(day) {
+    const table = [
+      96,93,90,86,83,80,76,73,70,
+      66,63,60,56,53,50,46,43,40,
+      36,33,30,26,23,20,16,13,10,
+      6,3,0
+    ];
+    return table[day - 1] ?? 0;
   }
+
 };
 
 export default taxProcessor;

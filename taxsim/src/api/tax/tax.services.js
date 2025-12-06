@@ -4,14 +4,12 @@ import Tax from './tax.model.js'
 const taxService = {
     create: async (tax) => {
         return await Tax.create({
-            initial: tax.initial,
-            end: tax.end,
-            factor: tax.factor,
-            type: tax.type,
-            applies: tax.applies,
+            name: tax.name,
+            mode: tax.mode,
+            value: tax.value,
+            appliesTo: tax.appliesTo,
             formulaId: tax.formulaId
-
-        })
+        });
     },
     bulkCreate: async (taxes) => {
         const validateIntervals = taxService.validateIntervals(taxes);

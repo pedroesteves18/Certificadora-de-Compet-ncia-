@@ -6,12 +6,17 @@ const investmentService = {
     create: async (investment) => {
         return await Investment.create({
             amount: investment.amount,
-            factor: investment.factor,
             type: investment.type,
-            formulaId: investment.formulaId
 
-        })
+            interestRate: investment.interestRate ?? null,
+            interestRateType: investment.interestRateType ?? null,
+
+            startDate: investment.startDate,
+            endDate: investment.endDate ?? null,
+            formulaId: investment.formulaId
+        });
     },
+
     bulkCreate: async (investments) => {
         return await Investment.bulkCreate(investments)
     },

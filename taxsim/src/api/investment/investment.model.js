@@ -1,30 +1,43 @@
 import sequelize from "../config/database.js";
 import { DataTypes } from "sequelize";
 
+const Investment = sequelize.define('Investment', {
+  amount: {
+    type: DataTypes.FLOAT,
+    allowNull: false
+  },
+  
+  interestRate: {
+    type: DataTypes.FLOAT,
+    allowNull: true
+  },
 
+  interestRateType: {
+    type: DataTypes.ENUM("percent", "currency"),
+    allowNull: true
+  },
 
-const Investment = await sequelize.define('Investment', {
-    amount: {
-        type: DataTypes.FLOAT,
-        allowNull: false
-    },
-    factor: {
-        type: DataTypes.FLOAT,
-        allowNull: false
-    },
-    type: {
-        type: DataTypes.ENUM("Ação","Fundo Imobiliário","Renda Fixa","Criptomoeda")
-    },
-    formulaId: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-        references: {
-            model: 'Formulas',
-            key: 'id'
-        }
+  type: {
+    type: DataTypes.ENUM("Acao", "FII", "RendaFixa", "Cripto", "Cambio"),
+    allowNull: false
+  },
+
+  startDate: {
+    type: DataTypes.DATE,
+    allowNull: true
+  },
+
+  formulaId: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: {
+      model: 'Formulas',
+      key: 'id'
     }
-},{
-    tableName: 'Investments'
-})
+  }
 
-export default Investment
+}, {
+  tableName: 'Investments'
+});
+
+export default Investment;

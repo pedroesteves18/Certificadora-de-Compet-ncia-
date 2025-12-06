@@ -25,52 +25,55 @@ const formulaController = {
     createFormula: async (req, res) => {
         try {
             const formulaData = {};
-            const investment = req.body.investment
-            const taxes = req.body.taxes
+            
             formulaData.userId = req.user.id;
-            formulaData.investment = investment
-            formulaData.taxes = taxes
-            formulaData.name = req.body.formulaName;
+            formulaData.name = req.body.name;
+            formulaData.iof = req.body.iof
+            
+            formulaData.investment = req.body.investment ?? null;
+
+            formulaData.taxes = req.body.taxes ?? [];
+
             const createdFormula = await formulaService.create(formulaData);
-            if (!createdFormula) return res.status(400).send({ msg: "Fórmula não criada!" });
-            return res.status(200).send({ msg: "Fórmula criada!", formula: createdFormula });
+
+            if (!createdFormula) {
+                return res.status(400).send({ msg: "Fórmula não criada!" });
+            }
+
+            return res.status(200).send({
+                msg: "Fórmula criada!",
+                formula: createdFormula
+            });
+
         } catch (err) {
             return res.status(500).send({ error: err.message });
         }
     },
-    processFormulas: async (req,res) => {
-        try{
-            let id = req.query.id
-            let firstMonth = req.query.firstMonth ? parseInt(req.query.firstMonth) : 1;
-            let lastMonth = req.query.lastMonth ? parseInt(req.query.lastMonth) : 12;
-            if(!firstMonth || !lastMonth){
-                return res.status(400).send({msg:"É necessário informar firstMonth e lastMonth"})
-            } 
-            if(id.length === 1){
-                const formula = await formulaService.findById(id);
-                if(!formula) return res.status(404).send({msg:"Fórmula não encontrada!"})
-                const processedAmount = await formulaService.processFormula(formula, firstMonth, lastMonth);
-                return res.status(200).send({ processedAmount: processedAmount });
-            }
-            if (typeof id === 'string') {
-                if (!/^[0-9,]+$/.test(id)) {
-                    return res.status(400).send({ msg: "IDs inválidos" });
-                }
-                id = id.split(',').map(Number).filter(n => !isNaN(n));
-            }
-            const processed = []
-            let i = 0
-            for(const formulaId of id){
-                const formula =  await formulaService.findById(formulaId);
-                if(!formula) return res.status(404).send({msg:`Fórmula com id ${formulaId} não encontrada!`})
+    processFormulas: async (req, res) => {
+    try {
+        let id = req.query.id;
+        const firstDay = Number(req.query.firstDay || 1);
+        const lastDay = Number(req.query.lastDay || 30);
+        if (!id) return res.status(400).send({ msg: "É necessário informar id" });
+        if (firstDay <= 0 || lastDay < firstDay) return res.status(400).send({ msg: "firstDay e lastDay inválidos" });
 
-                processed.push(await formulaService.processFormula(formula, firstMonth, lastMonth))
-            }
-            return res.status(200).send({ processedAmounts: processed });
-        } catch (err) {
-            console.log(err.message)
-            return res.status(500).send({ error: err.message });
+        const ids = id.includes(",") ? id.split(",").map(Number) : [Number(id)];
+
+        const result = [];
+
+        for (const formulaId of ids) {
+        const formula = await formulaService.findById(formulaId);
+        if (req.query.isSpot === "true") formula.Investments[0].isSpot = true;
+        if (!formula) return res.status(404).send({ msg: `Fórmula com id ${formulaId} não encontrada!` });
+        result.push(await formulaService.processFormula(formula, firstDay, lastDay));
         }
+
+        return res.status(200).send(ids.length === 1 ? { processedAmount: result[0] } : { processedAmounts: result });
+
+    } catch (err) {
+        console.log(err);
+        return res.status(500).send({ error: err.message });
+    }
     },
     deleteFormula: async (req, res) => {
         try {
