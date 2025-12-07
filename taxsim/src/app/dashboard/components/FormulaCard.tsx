@@ -1,7 +1,34 @@
 import Link from "next/link";
 import apiClient from "../../services/apiClient";
+
+interface Investment {
+  id: number;
+  amount: number;
+  type: string;
+  interestRate?: number;
+  interestRateType?: string;
+  startDate: string;
+  endDate?: string;
+}
+
+interface Tax {
+  id: number;
+  name: string;
+  mode: string;
+  value: number;
+  appliesTo: string;
+}
+
+interface Formula {
+  id: number;
+  name: string;
+  userId: number;
+  Investments: Investment[];
+  Taxes: Tax[];
+}
+
 interface FormulaCardProps {
-  formula: any;
+  formula: Formula;
   token: string | null;
   onDelete: (id: number) => void;
 }
@@ -20,13 +47,21 @@ export default function FormulaCard({ formula, token, onDelete }: FormulaCardPro
       alert("Erro ao excluir a fórmula.");
     }
   };
-  const taxTypeLabels: Record<string, string> = {
-    Percent: "Percentual",
-    Fixed: "Fixa",
-    Multiplier: "Multiplicador",
-    Progressive: "Progressiva",
-    Regressive: "Regressiva",
-    Capped: "Com Teto",
+  const investmentTypeLabels: Record<string, string> = {
+    RendaFixa: "Renda Fixa",
+    Acao: "Ação",
+    Cripto: "Criptomoeda",
+    Cambio: "Câmbio",
+  };
+
+  const taxModeLabels: Record<string, string> = {
+    percent: "Percentual",
+    fixed: "Fixa",
+  };
+
+  const taxAppliesToLabels: Record<string, string> = {
+    profit: "Lucro",
+    investment: "Investimento",
   };
 
   return (
@@ -49,13 +84,21 @@ export default function FormulaCard({ formula, token, onDelete }: FormulaCardPro
             <p className="font-bold text-blue-900">R$ {formula.Investments[0]?.amount.toFixed(2) || 0}</p>
           </div>
           <div>
-            <span className="text-blue-600 font-medium">Fator:</span>
-            <p className="font-bold text-blue-900">{formula.Investments[0]?.factor || 0}</p>
+            <span className="text-blue-600 font-medium">Taxa:</span>
+            <p className="font-bold text-blue-900">
+              {formula.Investments[0]?.interestRate 
+                ? formula.Investments[0].interestRateType === 'currency'
+                  ? `R$ ${formula.Investments[0].interestRate}`
+                  : `${formula.Investments[0].interestRate}% a.a.`
+                : '-'}
+            </p>
           </div>
         </div>
         <div className="mt-2">
           <span className="text-blue-600 font-medium text-xs">Tipo:</span>
-          <p className="font-bold text-blue-900 text-sm">{formula.Investments[0]?.type || "-"}</p>
+          <p className="font-bold text-blue-900 text-sm">
+            {investmentTypeLabels[formula.Investments[0]?.type] || formula.Investments[0]?.type || "-"}
+          </p>
         </div>
       </div>
 
@@ -66,11 +109,11 @@ export default function FormulaCard({ formula, token, onDelete }: FormulaCardPro
         </h5>
         {formula.Taxes?.length > 0 ? (
           <div className="space-y-2">
-            {formula.Taxes.slice(0, 2).map((t: any) => (
+            {formula.Taxes.slice(0, 2).map((t) => (
               <div key={t.id} className="flex justify-between items-center text-xs">
-                <span className="text-purple-600 font-medium">{taxTypeLabels[t.type] ?? t.type}:</span>
+                <span className="text-purple-600 font-medium">{t.name}:</span>
                 <span className="font-bold text-purple-900">
-                  {t.factor}{t.type === "Percent" ? "%" : ""} • {t.applies === "gain" ? "Ganho" : "Capital"}
+                  {t.mode === "percent" ? `${t.value}%` : `R$ ${t.value.toFixed(2)}`} • {taxAppliesToLabels[t.appliesTo] || t.appliesTo}
                 </span>
               </div>
             ))}

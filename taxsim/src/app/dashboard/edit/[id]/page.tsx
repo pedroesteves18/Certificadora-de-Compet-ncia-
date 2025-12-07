@@ -28,36 +28,41 @@ export default function EditFormulaPage() {
   const [editingInvId, setEditingInvId] = useState<number | null>(null);
 
   const [taxForm, setTaxForm] = useState({
-    initial: "",
-    end: "",
-    factor: "",
-    type: "Percent",
-    applies: "gain",
+    name: "",
+    mode: "percent",
+    value: "",
+    appliesTo: "profit",
   });
 
   const [invForm, setInvForm] = useState({
     amount: "",
-    factor: "",
-    type: "Ação",
+    interestRate: "",
+    interestRateType: "percent",
+    type: "RendaFixa",
+    startDate: "",
+    endDate: "",
   });
 
   type FormulaResponse = {
     formula: {
       id: number;
       name: string;
+      userId: number;
       Investments: {
         id: number;
         amount: number;
-        factor: number;
         type: string;
+        interestRate?: number;
+        interestRateType?: string;
+        startDate: string;
+        endDate?: string;
       }[];
       Taxes: {
         id: number;
-        initial: number | null;
-        end: number | null;
-        factor: number;
-        type: string;
-        applies: string;
+        name: string;
+        mode: string;
+        value: number;
+        appliesTo: string;
       }[];
     };
   };
@@ -98,22 +103,20 @@ export default function EditFormulaPage() {
         "/api/taxes",
         {
           formulaId: Number(id),
-          initial: taxForm.initial ? Number(taxForm.initial) : null,
-          end: taxForm.end ? Number(taxForm.end) : null,
-          factor: taxForm.factor === "" ? null : Number(taxForm.factor),
-          type: taxForm.type,
-          applies: taxForm.applies,
+          name: taxForm.name,
+          mode: taxForm.mode,
+          value: Number(taxForm.value),
+          appliesTo: taxForm.appliesTo,
         },
         token
       );
 
       setShowTaxForm(false);
       setTaxForm({
-        initial: "",
-        end: "",
-        factor: "",
-        type: "Percent",
-        applies: "gain",
+        name: "",
+        mode: "percent",
+        value: "",
+        appliesTo: "profit",
       });
       await fetchFormula();
     } catch (err) {
@@ -127,11 +130,10 @@ export default function EditFormulaPage() {
   const startEditTax = (tax: any) => {
     setEditingTaxId(tax.id);
     setTaxForm({
-      initial: tax.initial ?? "",
-      end: tax.end ?? "",
-      factor: tax.factor?.toString() ?? "",
-      type: tax.type,
-      applies: tax.applies,
+      name: tax.name ?? "",
+      mode: tax.mode,
+      value: tax.value?.toString() ?? "",
+      appliesTo: tax.appliesTo,
     });
   };
 
@@ -144,11 +146,10 @@ export default function EditFormulaPage() {
       await apiClient.put(
         `/api/taxes/${editingTaxId}`,
         {
-          initial: taxForm.initial ? Number(taxForm.initial) : null,
-          end: taxForm.end ? Number(taxForm.end) : null,
-          factor: Number(taxForm.factor),
-          type: taxForm.type,
-          applies: taxForm.applies,
+          name: taxForm.name,
+          mode: taxForm.mode,
+          value: Number(taxForm.value),
+          appliesTo: taxForm.appliesTo,
         },
         token
       );
@@ -176,11 +177,15 @@ export default function EditFormulaPage() {
   // EDIÇÃO DE INVESTIMENTO
   // -------------------------
   const startEditInvestment = (inv: any) => {
+    console.log("Editando investimento:", inv);
     setEditingInvId(inv.id);
     setInvForm({
       amount: inv.amount?.toString() ?? "",
-      factor: inv.factor?.toString() ?? "",
+      interestRate: inv.interestRate?.toString() ?? "",
+      interestRateType: inv.interestRateType || "percent",
       type: inv.type,
+      startDate: inv.startDate ? inv.startDate.split('T')[0] : "",
+      endDate: inv.endDate ? inv.endDate.split('T')[0] : "",
     });
   };
 
@@ -191,8 +196,11 @@ export default function EditFormulaPage() {
         `/api/investments/${editingInvId}`,
         {
           amount: Number(invForm.amount),
-          factor: Number(invForm.factor),
+          interestRate: invForm.interestRate ? Number(invForm.interestRate) : null,
+          interestRateType: invForm.interestRateType,
           type: invForm.type,
+          startDate: invForm.startDate,
+          endDate: invForm.endDate || null,
         },
         token
       );
@@ -260,19 +268,39 @@ export default function EditFormulaPage() {
                   </form>
                 ) : (
                   <>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
                       <div className="bg-blue-50 rounded-xl p-4">
                         <p className="text-sm text-blue-600 font-medium mb-1">Valor Inicial</p>
                         <p className="text-xl font-bold text-blue-900">R$ {inv.amount}</p>
                       </div>
                       <div className="bg-purple-50 rounded-xl p-4">
-                        <p className="text-sm text-purple-600 font-medium mb-1">Fator</p>
-                        <p className="text-xl font-bold text-purple-900">{inv.factor}</p>
+                        <p className="text-sm text-purple-600 font-medium mb-1">Tipo</p>
+                        <p className="text-xl font-bold text-purple-900">{inv.type}</p>
                       </div>
-                      <div className="bg-green-50 rounded-xl p-4">
-                        <p className="text-sm text-green-600 font-medium mb-1">Tipo</p>
-                        <p className="text-xl font-bold text-green-900">{inv.type}</p>
-                      </div>
+                      {inv.interestRate && (
+                        <div className="bg-green-50 rounded-xl p-4">
+                          <p className="text-sm text-green-600 font-medium mb-1">Taxa de Juros</p>
+                          <p className="text-xl font-bold text-green-900">
+                            {inv.interestRateType === 'currency' ? 'R$ ' : ''}{inv.interestRate}{inv.interestRateType === 'percent' ? '%' : ''}
+                          </p>
+                        </div>
+                      )}
+                      {inv.startDate && (
+                        <div className="bg-yellow-50 rounded-xl p-4">
+                          <p className="text-sm text-yellow-600 font-medium mb-1">Data Início</p>
+                          <p className="text-xl font-bold text-yellow-900">
+                            {new Date(inv.startDate).toLocaleDateString('pt-BR')}
+                          </p>
+                        </div>
+                      )}
+                      {inv.endDate && (
+                        <div className="bg-orange-50 rounded-xl p-4">
+                          <p className="text-sm text-orange-600 font-medium mb-1">Data Fim</p>
+                          <p className="text-xl font-bold text-orange-900">
+                            {new Date(inv.endDate).toLocaleDateString('pt-BR')}
+                          </p>
+                        </div>
+                      )}
                     </div>
                     <div className="flex gap-3">
                       <button
@@ -357,30 +385,28 @@ export default function EditFormulaPage() {
                   ) : (
                     <>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                        <div className="bg-red-50 rounded-xl p-4">
-                          <p className="text-sm text-red-600 font-medium mb-1">Fator</p>
-                          <p className="text-xl font-bold text-red-900">{tax.factor}%</p>
-                        </div>
                         <div className="bg-blue-50 rounded-xl p-4">
-                          <p className="text-sm text-blue-600 font-medium mb-1">Tipo</p>
-                          <p className="text-xl font-bold text-blue-900">{tax.type}</p>
+                          <p className="text-sm text-blue-600 font-medium mb-1">Nome</p>
+                          <p className="text-xl font-bold text-blue-900">{tax.name}</p>
                         </div>
                         <div className="bg-purple-50 rounded-xl p-4">
-                          <p className="text-sm text-purple-600 font-medium mb-1">Aplica em</p>
-                          <p className="text-xl font-bold text-purple-900">{tax.applies === 'gain' ? 'Ganho' : 'Capital'}</p>
+                          <p className="text-sm text-purple-600 font-medium mb-1">Modo</p>
+                          <p className="text-xl font-bold text-purple-900">
+                            {tax.mode === 'percent' ? 'Percentual' : 'Fixa'}
+                          </p>
                         </div>
-                        {(tax.initial || tax.end) && (
-                          <>
-                            <div className="bg-yellow-50 rounded-xl p-4">
-                              <p className="text-sm text-yellow-600 font-medium mb-1">Início</p>
-                              <p className="text-xl font-bold text-yellow-900">{tax.initial ?? "N/A"}</p>
-                            </div>
-                            <div className="bg-orange-50 rounded-xl p-4">
-                              <p className="text-sm text-orange-600 font-medium mb-1">Fim</p>
-                              <p className="text-xl font-bold text-orange-900">{tax.end ?? "N/A"}</p>
-                            </div>
-                          </>
-                        )}
+                        <div className="bg-red-50 rounded-xl p-4">
+                          <p className="text-sm text-red-600 font-medium mb-1">Valor</p>
+                          <p className="text-xl font-bold text-red-900">
+                            {tax.mode === 'percent' ? `${tax.value}%` : `R$ ${tax.value.toFixed(2)}`}
+                          </p>
+                        </div>
+                        <div className="bg-green-50 rounded-xl p-4">
+                          <p className="text-sm text-green-600 font-medium mb-1">Aplica em</p>
+                          <p className="text-xl font-bold text-green-900">
+                            {tax.appliesTo === 'profit' ? 'Lucro' : tax.appliesTo === 'initial' ? 'Valor Inicial' : 'Valor Total'}
+                          </p>
+                        </div>
                       </div>
                       <div className="flex gap-3">
                         <button

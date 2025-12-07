@@ -16,20 +16,25 @@ import PeriodControls from './components/PeriodControls';
 interface ApiInvestment {
   id: number;
   amount: number;
-  factor: number;
   type: string;
+  interestRate?: number;
+  interestRateType?: string;
+  startDate: string;
+  endDate?: string;
 }
 
 interface ApiTax {
   id: number;
-  factor: number;
-  type: string;
-  applies: "gain" | "capital";
+  name: string;
+  mode: string;
+  value: number;
+  appliesTo: string;
 }
 
 interface ApiFormula {
   id: number;
   name: string;
+  userId: number;
   Investments: ApiInvestment[];
   Taxes: ApiTax[];
 }
@@ -72,21 +77,31 @@ export default function DashboardPage() {
       // Processar cada fórmula para gráfico
       const chartRows: FormulaChartData[] = [];
 
+      // Converter meses para dias (30 dias por mês)
+      const firstDay = fm * 30;
+      const lastDay = lm * 30;
+
       await Promise.all(
         data.formulas.map(async (formula) => {
           const processed = await apiClient.post<any>(
-            `/api/formulas/process?firstMonth=${fm}&lastMonth=${lm}&id=${formula.id}`,
+            `/api/formulas/process?firstDay=${firstDay}&lastDay=${lastDay}&id=${formula.id}`,
             {},
             token
           );
 
-          const rows: any[] = Array.isArray(processed.processedAmounts)
-            ? processed.processedAmounts[0].slice(1)
-            : processed.processedAmount.slice(1);
+          // Backend retorna objeto com dailyResults array
+          const processedData = processed.processedAmount || processed.processedAmounts?.[0];
+          
+          if (!processedData || !processedData.dailyResults) {
+            console.warn(`Dados de processamento inválidos para fórmula ${formula.name}`);
+            return;
+          }
 
-          rows.forEach((r, idx) => {
-            if (!chartRows[idx]) chartRows[idx] = { month: r.month };
-            chartRows[idx][formula.name] = r.afterTax;
+          // Agrupar dados por mês (a cada 30 dias)
+          processedData.dailyResults.forEach((dayData: any, idx: number) => {
+            const monthIndex = Math.floor(dayData.day / 30);
+            if (!chartRows[monthIndex]) chartRows[monthIndex] = { month: monthIndex + 1 };
+            chartRows[monthIndex][formula.name] = dayData.netTotal;
           });
         })
       );

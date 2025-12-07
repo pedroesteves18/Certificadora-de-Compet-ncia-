@@ -52,8 +52,16 @@ export default function ProcessPage() {
 
       const API = process.env.NEXT_PUBLIC_API_URL ?? "http://ec2-3-238-112-88.compute-1.amazonaws.com:5000";
 
+      // Verificar se há parâmetro isSpot na URL
+      const search = new URLSearchParams(window.location.search);
+      const isSpot = search.get("isSpot") === "true";
+
+      // Converter meses para dias (30 dias por mês)
+      const firstDay = fm * 30;
+      const lastDay = lm * 30;
+
       const res = await fetch(
-        `${API}/api/formulas/process?firstMonth=${fm}&lastMonth=${lm}&id=${formulaId}`,
+        `${API}/api/formulas/process?firstDay=${firstDay}&lastDay=${lastDay}&isSpot=${isSpot}&id=${formulaId}`,
         {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
@@ -64,20 +72,31 @@ export default function ProcessPage() {
       if (!res.ok) throw new Error("Erro na API");
 
       const json = await res.json();
-      const rows = Array.isArray(json.processedAmounts)
-        ? json.processedAmounts[0]
-        : json.processedAmount;
+      
+      // Backend retorna objeto com dailyResults array
+      const processedData = json.processedAmount || json.processedAmounts?.[0];
+      
+      if (!processedData || !processedData.dailyResults) {
+        throw new Error("Estrutura de dados inválida retornada pela API");
+      }
 
-      const formatted = rows.slice(1).map((r: any) => ({
-        month: r.month,
-        beforeTax: r.beforeTax,
-        afterTax: r.afterTax,
-      }));
+      // Agrupar dados por mês (pegar o último dia de cada mês)
+      const monthlyData: any = {};
+      processedData.dailyResults.forEach((dayData: any) => {
+        const monthIndex = Math.floor(dayData.day / 30) + 1;
+        monthlyData[monthIndex] = {
+          month: monthIndex,
+          beforeTax: dayData.grossProfitTotal + processedData.initialAmount,
+          afterTax: dayData.netTotal,
+        };
+      });
+      
+      const formatted = Object.values(monthlyData);
 
       setData({
-        id: rows[0].formulaId,
-        name: rows[0].formulaName,
-        initialAmount: rows[0].initialAmount,
+        id: processedData.formulaId,
+        name: processedData.formulaName,
+        initialAmount: processedData.initialAmount,
         rows: formatted,
       });
     } catch (err) {

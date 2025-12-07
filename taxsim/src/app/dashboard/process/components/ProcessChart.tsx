@@ -5,6 +5,7 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
+  Legend,
   ResponsiveContainer,
 } from "recharts";
 
@@ -56,11 +57,19 @@ export default function ProcessChart({ data }: ProcessChartProps) {
                 fontWeight: '500',
                 padding: '2px 0'
               }}
-              formatter={(value: any, name: string) => [
-                `R$ ${parseFloat(value).toFixed(2)}`,
-                name === 'beforeTax' ? 'Antes da Taxa' : 'Após Taxa'
-              ]}
-              labelFormatter={(label) => `Mês ${label}`}
+              formatter={(value: any) => `R$ ${parseFloat(value).toFixed(2)}`}
+              labelFormatter={(label) => `Dia ${label}`}
+            />
+            <Legend 
+              wrapperStyle={{
+                paddingTop: '20px'
+              }}
+              iconType="line"
+              formatter={(value) => {
+                if (value === 'beforeTax') return 'Antes da Taxa';
+                if (value === 'afterTax') return 'Após Taxa';
+                return value;
+              }}
             />
             <Line
               type="monotone"

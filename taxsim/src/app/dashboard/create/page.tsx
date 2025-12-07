@@ -11,50 +11,49 @@ import { useRouter } from "next/navigation";
 // ----------------------
 export type LocalInvestment = {
   amount: number;
-  factor: number;
-  type: "Renda Fixa" | "Ação" | "Fundo Imobiliário" | "Criptomoeda";
+  interestRate: number | null;
+  interestRateType: "percent" | "currency";
+  type: "Acao" | "FII" | "RendaFixa" | "Cripto" | "Cambio";
+  startDate: string;
+  endDate: string | null;
 };
 
 export type LocalTax = {
-  initial: number | null;
-  end: number | null;
-  factor: number | null;
-  type:
-    | "Percent"
-    | "Fixed"
-    | "Multiplier"
-    | "Progressive"
-    | "Regressive"
-    | "Capped";
-  applies: "gain" | "capital";
+  name: string;
+  mode: "percent" | "fixed";
+  value: number;
+  appliesTo: "profit" | "initial" | "total";
 };
 
 // Opções dos selects
 const investmentTypes: LocalInvestment["type"][] = [
-  "Renda Fixa",
-  "Ação",
-  "Fundo Imobiliário",
-  "Criptomoeda",
+  "RendaFixa",
+  "Acao",
+  "FII",
+  "Cripto",
+  "Cambio",
 ];
 
-const taxTypes: LocalTax["type"][] = [
-  "Percent",
-  "Fixed",
-  "Multiplier",
-  "Progressive",
-  "Regressive",
-  "Capped",
-];
-const taxTypeLabels: Record<LocalTax["type"], string> = {
-  Percent: "Percentual",
-  Fixed: "Fixa",
-  Multiplier: "Multiplicador",
-  Progressive: "Progressiva",
-  Regressive: "Regressiva",
-  Capped: "Com Teto",
+const investmentTypeLabels: Record<LocalInvestment["type"], string> = {
+  RendaFixa: "Renda Fixa",
+  Acao: "Ação",
+  FII: "Fundo Imobiliário",
+  Cripto: "Criptomoeda",
+  Cambio: "Câmbio",
 };
 
-const taxApplies: LocalTax["applies"][] = ["gain", "capital"];
+const taxModes: LocalTax["mode"][] = ["percent", "fixed"];
+const taxModeLabels: Record<LocalTax["mode"], string> = {
+  percent: "Percentual",
+  fixed: "Fixa",
+};
+
+const taxAppliesTo: LocalTax["appliesTo"][] = ["profit", "initial", "total"];
+const taxAppliesToLabels: Record<LocalTax["appliesTo"], string> = {
+  profit: "Lucro",
+  initial: "Valor Inicial",
+  total: "Valor Total",
+};
 
 // ---------------------------------------------------
 // Página principal
@@ -66,11 +65,15 @@ export default function CreateFormulaPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formulaName, setFormulaName] = useState("");
+  const [includeIOF, setIncludeIOF] = useState(false);
 
   const [investment, setInvestment] = useState<LocalInvestment>({
     amount: 1000,
-    factor: 1.05,
-    type: "Renda Fixa",
+    interestRate: 5,
+    interestRateType: "percent",
+    type: "RendaFixa",
+    startDate: new Date().toISOString().split('T')[0],
+    endDate: null,
   });
 
   const [taxes, setTaxes] = useState<LocalTax[]>([]);
@@ -88,11 +91,10 @@ export default function CreateFormulaPage() {
     setTaxes([
       ...taxes,
       {
-        initial: null,
-        end: null,
-        factor: 15,
-        type: "Percent",
-        applies: "gain",
+        name: "",
+        mode: "percent",
+        value: 15,
+        appliesTo: "profit",
       },
     ]);
   };
@@ -103,26 +105,20 @@ export default function CreateFormulaPage() {
 
   const handleTaxChange = (
     index: number,
-    field: "initial" | "end" | "factor" | "type" | "applies",
-    value: string | number | null
+    field: keyof LocalTax,
+    value: string | number
   ) => {
     const updated = [...taxes];
     const tax = updated[index];
 
-    switch (field) {
-      case "initial":
-      case "end":
-      case "factor":
-        tax[field] = value === "" ? null : Number(value);
-        break;
-
-      case "type":
-        tax.type = value as LocalTax["type"];
-        break;
-
-      case "applies":
-        tax.applies = value as LocalTax["applies"];
-        break;
+    if (field === "name") {
+      tax.name = value as string;
+    } else if (field === "mode") {
+      tax.mode = value as LocalTax["mode"];
+    } else if (field === "value") {
+      tax.value = Number(value);
+    } else if (field === "appliesTo") {
+      tax.appliesTo = value as LocalTax["appliesTo"];
     }
 
     setTaxes(updated);
@@ -130,11 +126,16 @@ export default function CreateFormulaPage() {
 
   const handleInvestmentChange = (
     field: keyof LocalInvestment,
-    value: string | number
+    value: string | number | null
   ) => {
     setInvestment((prev) => ({
       ...prev,
-      [field]: field === "amount" || field === "factor" ? Number(value) : value,
+      [field]: 
+        field === "amount" || field === "interestRate" 
+          ? (value === "" || value === null ? null : Number(value))
+          : field === "interestRateType" || field === "type"
+          ? value
+          : value,
     }));
   };
 
@@ -147,8 +148,16 @@ export default function CreateFormulaPage() {
     setError(null);
 
     const payload = {
-      formulaName: formulaName,
-      investment: investment,
+      name: formulaName,
+      iof: includeIOF,
+      investment: {
+        amount: investment.amount,
+        interestRate: investment.interestRate,
+        interestRateType: investment.interestRateType,
+        type: investment.type,
+        startDate: investment.startDate,
+        endDate: investment.endDate || null,
+      },
       taxes: taxes,
     };
 
@@ -198,36 +207,33 @@ export default function CreateFormulaPage() {
               className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 shadow-sm text-black"
               required
             />
+
+            <div className="mt-4">
+              <label className="flex items-center gap-2 text-black font-medium cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={includeIOF}
+                  onChange={(e) => setIncludeIOF(e.target.checked)}
+                  className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                />
+                <span>Incluir IOF (Imposto sobre Operações Financeiras)</span>
+              </label>
+            </div>
           </div>
 
           {/* ---------------- Seção 2: Investimento ---------------- */}
           <div className="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
             <h2 className="text-2xl font-semibold mb-6 text-gray-800">2. Investimento</h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Valor */}
               <div>
-                <label className="block text-black font-medium mb-2">Valor (R$)</label>
+                <label className="block text-black font-medium mb-2">Valor Inicial (R$)</label>
                 <input
                   type="number"
                   step="0.01"
                   value={investment.amount}
                   onChange={(e) => handleInvestmentChange("amount", e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 text-black"
-                  required
-                />
-              </div>
-
-              {/* Fator */}
-              <div>
-                <label className="block text-black font-medium mb-2">
-                  Fator/Rendimento (ex: 1.05)
-                </label>
-                <input
-                  type="number"
-                  step="0.001"
-                  value={investment.factor}
-                  onChange={(e) => handleInvestmentChange("factor", e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 text-black"
                   required
                 />
@@ -245,10 +251,66 @@ export default function CreateFormulaPage() {
                 >
                   {investmentTypes.map((t) => (
                     <option key={t} value={t}>
-                      {t}
+                      {investmentTypeLabels[t]}
                     </option>
                   ))}
                 </select>
+              </div>
+
+              {/* Taxa de Juros */}
+              <div>
+                <label className="block text-black font-medium mb-2">
+                  Taxa de Juros
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={investment.interestRate ?? ""}
+                  onChange={(e) => handleInvestmentChange("interestRate", e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 text-black"
+                />
+              </div>
+
+              {/* Tipo de Taxa */}
+              <div>
+                <label className="block text-black font-medium mb-2">
+                  Tipo de Taxa
+                </label>
+                <select
+                  value={investment.interestRateType}
+                  onChange={(e) => handleInvestmentChange("interestRateType", e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-white focus:ring-2 focus:ring-blue-500 text-black"
+                >
+                  <option value="percent">Percentual (%)</option>
+                  <option value="currency">Valor Fixo (R$)</option>
+                </select>
+              </div>
+
+              {/* Data de Início */}
+              <div>
+                <label className="block text-black font-medium mb-2">
+                  Data de Início
+                </label>
+                <input
+                  type="date"
+                  value={investment.startDate}
+                  onChange={(e) => handleInvestmentChange("startDate", e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 text-black"
+                  required
+                />
+              </div>
+
+              {/* Data de Fim (opcional) */}
+              <div>
+                <label className="block text-black font-medium mb-2">
+                  Data de Fim (opcional)
+                </label>
+                <input
+                  type="date"
+                  value={investment.endDate ?? ""}
+                  onChange={(e) => handleInvestmentChange("endDate", e.target.value || null)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 text-black"
+                />
               </div>
             </div>
           </div>
@@ -283,19 +345,33 @@ export default function CreateFormulaPage() {
                     ✕
                   </button>
 
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="md:col-span-2">
+                      <label className="block text-xs font-medium text-black mb-1">
+                        Nome da Taxa
+                      </label>
+                      <input
+                        type="text"
+                        value={tax.name}
+                        onChange={(e) => handleTaxChange(index, "name", e.target.value)}
+                        placeholder="Ex: IR, Taxa de Corretagem, etc."
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-black"
+                        required
+                      />
+                    </div>
+
                     <div>
                       <label className="block text-xs font-medium text-black mb-1">
-                        Tipo de Taxa
+                        Modo
                       </label>
                       <select
-                        value={tax.type}
-                        onChange={(e) => handleTaxChange(index, "type", e.target.value)}
+                        value={tax.mode}
+                        onChange={(e) => handleTaxChange(index, "mode", e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-black"
                       >
-                        {taxTypes.map((t) => (
-                          <option key={t} value={t}>
-                            {taxTypeLabels[t]}
+                        {taxModes.map((m) => (
+                          <option key={m} value={m}>
+                            {taxModeLabels[m]}
                           </option>
                         ))}
                       </select>
@@ -303,55 +379,30 @@ export default function CreateFormulaPage() {
 
                     <div>
                       <label className="block text-xs font-medium text-black mb-1">
-                        Início
+                        Valor {tax.mode === "percent" ? "(%)" : "(R$)"}
                       </label>
                       <input
                         type="number"
                         step="0.01"
-                        value={tax.initial ?? ""}
-                        onChange={(e) => handleTaxChange(index, "initial", e.target.value)}
+                        value={tax.value}
+                        onChange={(e) => handleTaxChange(index, "value", e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-black"
+                        required
                       />
                     </div>
 
-                    <div>
-                      <label className="block text-xs font-medium text-black mb-1">
-                        Fim
-                      </label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={tax.end ?? ""}
-                        onChange={(e) => handleTaxChange(index, "end", e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-black"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-medium text-black mb-1">
-                        Fator
-                      </label>
-                      <input
-                        type="number"
-                        step="0.1"
-                        value={tax.factor ?? ""}
-                        onChange={(e) => handleTaxChange(index, "factor", e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-black"
-                      />
-                    </div>
-
-                    <div>
+                    <div className="md:col-span-2">
                       <label className="block text-xs font-medium text-black mb-1">
                         Aplica-se sobre
                       </label>
                       <select
-                        value={tax.applies}
-                        onChange={(e) => handleTaxChange(index, "applies", e.target.value)}
+                        value={tax.appliesTo}
+                        onChange={(e) => handleTaxChange(index, "appliesTo", e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-black"
                       >
-                        {taxApplies.map((t) => (
-                          <option key={t} value={t}>
-                            {t === "gain" ? "Ganho" : "Capital"}
+                        {taxAppliesTo.map((a) => (
+                          <option key={a} value={a}>
+                            {taxAppliesToLabels[a]}
                           </option>
                         ))}
                       </select>

@@ -8,6 +8,33 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+// Interfaces para estrutura da API
+interface Investment {
+  id: number;
+  amount: number;
+  type: string;
+  interestRate?: number;
+  interestRateType?: string;
+  startDate: string;
+  endDate?: string;
+}
+
+interface Tax {
+  id: number;
+  name: string;
+  mode: string;
+  value: number;
+  appliesTo: string;
+}
+
+interface Formula {
+  id: number;
+  name: string;
+  userId: number;
+  Investments: Investment[];
+  Taxes: Tax[];
+}
+
 // Para gráfico
 interface FormulaChartData {
   month: number;
@@ -16,7 +43,7 @@ interface FormulaChartData {
 
 interface ChartComponentProps {
   chartData: FormulaChartData[];
-  formulas: any[];
+  formulas: Formula[];
 }
 
 export default function ChartComponent({ chartData, formulas }: ChartComponentProps) {
