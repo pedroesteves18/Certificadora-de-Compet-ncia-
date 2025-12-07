@@ -9,7 +9,6 @@ const investmentService = {
             type: investment.type,
 
             interestRate: investment.interestRate ?? null,
-            interestRateType: investment.interestRateType ?? null,
 
             startDate: investment.startDate,
             endDate: investment.endDate ?? null,

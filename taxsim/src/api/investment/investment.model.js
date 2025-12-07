@@ -12,11 +12,6 @@ const Investment = sequelize.define('Investment', {
     allowNull: true
   },
 
-  interestRateType: {
-    type: DataTypes.ENUM("percent", "currency"),
-    allowNull: true
-  },
-
   type: {
     type: DataTypes.ENUM("Acao", "FII", "RendaFixa", "Cripto", "Cambio"),
     allowNull: false

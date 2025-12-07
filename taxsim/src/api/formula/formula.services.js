@@ -47,7 +47,6 @@ create: async (formulaData) => {
             amount: inv.amount,
             type: inv.type,
             interestRate: inv.interestRate ?? null,
-            interestRateType: inv.interestRateType ?? null,
             startDate: inv.startDate,
             endDate: inv.endDate ?? null,
             formulaId: formula.id
@@ -174,330 +173,333 @@ getAutomaticTaxes: (inv, day) => {
 },
 
 
-processCripto: (formula, firstDay, lastDay) => {
-    const inv = formula.Investments[0];
-    let initialAmount = inv.amount;
-    let netTotal = initialAmount;
-    let grossProfitTotal = 0;
-    let totalTaxesPaid = 0;
-    const dailyResults = [];
+    processCripto: (formula, firstDay, lastDay) => {
+        const inv = formula.Investments[0];
+        let initialAmount = Number(inv.amount);
+        let price = initialAmount;
 
-    // Verifica se existe corretagem
-    let startingFee = 0;
-    let endingFee = 0;
-    const corretagem = formula.Taxes.find(t => t.name === "Corretagem");
-    if (corretagem) {
-        startingFee = taxProcessor.process(corretagem, initialAmount).tax;
-        totalTaxesPaid += startingFee;
-        netTotal -= startingFee;
-    }
+        let totalTaxesPaid = 0;
+        let grossProfitTotal = 0;
 
-    const randomCryptoOscillation = (currentPrice) => {
-        const variation = Math.random() * 10 - 5
-        return { newPrice: currentPrice * (1 + variation / 100), variationPercent: variation }
-    };
+        const dailyResults = [];
 
-    for (let day = 1; day <= lastDay; day++) {
-        const { newPrice, variationPercent } = randomCryptoOscillation(netTotal)
-        const dailyProfit = netTotal * (variationPercent / 100)
-        let profitAfterTax = dailyProfit
-
-        const taxesApplied = [];
-        const autoTaxes = formulaService.getAutomaticTaxes(inv, day)
-
-        for (const tax of autoTaxes.filter(t => t.appliesTo === "profit")) {
-            const taxRes = taxProcessor.process(tax, profitAfterTax);
-            taxesApplied.push({
-                name: tax.name,
-                rate: tax.value,
-                taxAmount: Number(taxRes.tax.toFixed(2))
-            });
-            profitAfterTax = taxRes.after;
+        // Corretagem
+        let startingFee = 0;
+        let endingFee = 0;
+        const corretagem = formula.Taxes.find(t => t.name === "Corretagem");
+        if (corretagem) {
+            startingFee = taxProcessor.process(corretagem, initialAmount).tax;
+            endingFee = taxProcessor.process(corretagem, initialAmount).tax;
+            price -= startingFee; // desconto da corretagem inicial
+            totalTaxesPaid += startingFee;
         }
 
-        const taxesToday = dailyProfit - profitAfterTax;
-
-        grossProfitTotal += dailyProfit;
-        totalTaxesPaid += taxesToday;
-        netTotal += profitAfterTax;
-
-        dailyResults.push({
-            day,
-            dailyProfit: Number(dailyProfit.toFixed(2)),
-            taxesApplied,
-            taxesToday: Number(taxesToday.toFixed(2)),
-            grossProfitTotal: Number(grossProfitTotal.toFixed(2)),
-            totalTaxesPaid: Number(totalTaxesPaid.toFixed(2)),
-            netTotal: Number(netTotal.toFixed(2)),
-            price: Number(newPrice.toFixed(2)),
-            variationPercent: Number(variationPercent.toFixed(2))
-        });
-    }
-
-    // Taxa de saída
-    if (corretagem) {
-        endingFee = taxProcessor.process(corretagem, netTotal).tax;
-        totalTaxesPaid += endingFee;
-        netTotal -= endingFee;
-    }
-
-    return {
-        formulaId: formula.id,
-        formulaName: formula.name,
-        initialAmount,
-        startingFee: corretagem ? Number(startingFee.toFixed(2)) : undefined,
-        endingFee: corretagem ? Number(endingFee.toFixed(2)) : undefined,
-        grossTotal: Number((initialAmount + grossProfitTotal).toFixed(2)),
-        totalTaxesPaid: Number(totalTaxesPaid.toFixed(2)),
-        netTotal: Number(netTotal.toFixed(2)),
-        totalValue: Number(netTotal.toFixed(2)),
-        dailyResults
-    };
-},
-
-
-
-
-
-processRendaFixa: (formula, firstDay, lastDay) => {
-    const inv = formula.Investments[0];
-    let initialAmount = Number(inv.amount);
-    let netTotal = initialAmount;
-    let grossProfitTotal = 0;
-    let totalTaxesPaid = 0;
-    const dailyResults = [];
-
-    let dailyRate = 0;
-    if (inv.interestRateType === "percent") {
-        dailyRate = Math.pow(1 + inv.interestRate / 100, 1 / 365) - 1;
-    } else if (inv.interestRateType === "currency") {
-        dailyRate = Number(inv.interestRate);
-    }
-
-    for (let day = 1; day <= lastDay; day++) {
-        const dailyProfit = netTotal * dailyRate;
-        let profitAfterTax = dailyProfit;
-
-        const taxesApplied = [];
-        const autoTaxes = formulaService.getAutomaticTaxes(inv, day);
-
-        for (const tax of autoTaxes.filter(t => t.appliesTo === "profit")) {
-            const taxRes = taxProcessor.process(tax, profitAfterTax);
-            taxesApplied.push({
-                name: tax.name,
-                rate: tax.value,
-                taxAmount: Number(taxRes.tax.toFixed(2))
-            });
-            profitAfterTax = taxRes.after;
-        }
-
-        const taxesToday = dailyProfit - profitAfterTax;
-        totalTaxesPaid += taxesToday;
-        grossProfitTotal += dailyProfit;
-        netTotal += profitAfterTax;
-
-        dailyResults.push({
-            day,
-            dailyProfit: Number(dailyProfit.toFixed(2)),
-            taxesApplied,
-            taxesToday: Number(taxesToday.toFixed(2)),
-            grossProfitTotal: Number(grossProfitTotal.toFixed(2)),
-            totalTaxesPaid: Number(totalTaxesPaid.toFixed(2)),
-            netTotal: Number(netTotal.toFixed(2))
-        });
-    }
-
-    return {
-        formulaId: formula.id,
-        formulaName: formula.name,
-        initialAmount,
-        grossTotal: Number((initialAmount + grossProfitTotal).toFixed(2)), // bruto acumulado
-        totalTaxesPaid: Number(totalTaxesPaid.toFixed(2)),
-        netTotal: Number(netTotal.toFixed(2)), // já líquido acumulado
-        totalValue: Number(netTotal.toFixed(2)), // sem somar o initialAmount de novo
-        dailyResults
-    };
-
-},
-processAcao: (formula, firstDay, lastDay) => {
-    const inv = formula.Investments[0];
-    let initialAmount = Number(inv.amount);
-    let price = initialAmount;
-
-    let totalTaxesPaid = 0; 
-    let grossProfitTotal = 0;
-
-    const dailyResults = [];
-
-    // Corretagem
-    let startingFee = 0;
-    let endingFee = 0;
-    const corretagem = formula.Taxes.find(t => t.name === "Corretagem");
-    if (corretagem) {
-        startingFee = taxProcessor.process(corretagem, initialAmount).tax;
-        endingFee = taxProcessor.process(corretagem, initialAmount).tax;
-        price -= startingFee;
-        totalTaxesPaid += startingFee;
-    }
-
-    const randomStockOscillation = (currentPrice) => {
-        const variation = Math.random() * 6 - 3; // -3% a +3%
-        return { 
-            newPrice: currentPrice * (1 + variation / 100), 
-            variationPercent: variation 
+        const randomCryptoOscillation = (currentPrice) => {
+            const variation = Math.random() * 10 - 5; // -5% a +5%
+            return {
+                newPrice: currentPrice * (1 + variation / 100),
+                variationPercent: variation
+            };
         };
-    };
 
-    for (let day = 1; day <= lastDay; day++) {
-        const { newPrice, variationPercent } = randomStockOscillation(price);
-        price = newPrice;
+        for (let day = 1; day <= lastDay; day++) {
+            const { newPrice, variationPercent } = randomCryptoOscillation(price);
+            price = newPrice;
 
-        const valuation = price - initialAmount; // lucro real em relação ao inicial
-        let dailyProfit = valuation - grossProfitTotal;
-        grossProfitTotal = valuation;
+            // lucro bruto acumulado em relação ao inicial
+            grossProfitTotal = price - initialAmount;
 
-        // IR só se houver lucro acima do inicial
-        let taxesApplied = [];
-        let taxesToday = 0;
-        if (valuation > 0) {
-            const irAmount = dailyProfit * 0.15;
-            taxesApplied.push({ name: "IR Acao", rate: 15, taxAmount: Number(irAmount.toFixed(2)) });
-            taxesToday = irAmount;
-            totalTaxesPaid += irAmount;
-            dailyProfit -= irAmount;
-        }
-
-        const netTotal = initialAmount + grossProfitTotal - totalTaxesPaid + startingFee - endingFee;
-
-        dailyResults.push({
-            day,
-            dailyProfit: Number(dailyProfit.toFixed(2)),
-            taxesApplied,
-            taxesToday: Number(taxesToday.toFixed(2)),
-            grossProfitTotal: Number(grossProfitTotal.toFixed(2)),
-            totalTaxesPaid: Number(totalTaxesPaid.toFixed(2)),
-            netTotal: Number(price - totalTaxesPaid).toFixed(2),
-            price: Number(price.toFixed(2)),
-            variationPercent: Number(variationPercent.toFixed(2))
-        });
-    }
-
-    return {
-        formulaId: formula.id,
-        formulaName: formula.name,
-        initialAmount,
-        startingFee: Number(startingFee.toFixed(2)),
-        endingFee: Number(endingFee.toFixed(2)),
-        grossTotal: Number((initialAmount + grossProfitTotal).toFixed(2)),
-        totalTaxesPaid: Number(totalTaxesPaid.toFixed(2)),
-        netTotal: Number(price - totalTaxesPaid).toFixed(2),
-        totalValue: Number(price - totalTaxesPaid).toFixed(2),
-        dailyResults
-    };
-},
-
-
-
-processCambio: (formula, firstDay, lastDay) => {
-    const inv = formula.Investments[0];
-    
-    let initialAmount = Number(inv.amount);
-    let netTotal = initialAmount;
-    let grossProfitTotal = 0;
-    let totalTaxesPaid = 0;
-
-    const dailyResults = [];
-
-    // Obtem taxa de corretagem (se existir)
-    let startingFee = 0;
-    let endingFee = 0;
-    const corretagem = formula.Taxes.find(t => t.name === "Corretagem");
-    if (corretagem) {
-        startingFee = taxProcessor.process(corretagem, initialAmount).tax;
-        endingFee = taxProcessor.process(corretagem, initialAmount).tax;
-        netTotal -= startingFee; // desconto no início
-        totalTaxesPaid += startingFee;
-    }
-
-    const dailyOscillation = (currentAmount) => {
-        const variationPercent = (Math.random() * 2 - 1); 
-        return { 
-            newAmount: currentAmount * (1 + variationPercent / 100), 
-            variationPercent 
-        };
-    };
-
-    for (let day = 1; day <= lastDay; day++) {
-        const { newAmount, variationPercent } = dailyOscillation(netTotal);
-        
-        const dailyProfit = newAmount - netTotal;
-        let profitAfterTax = dailyProfit;
-
-        const taxesApplied = [];
-        const autoTaxes = formulaService.getAutomaticTaxes(inv, day);
-
-        for (const tax of autoTaxes) {
-            if (tax.appliesTo === "investment") {
-                const taxRes = taxProcessor.process(tax, dailyProfit, day);
-                profitAfterTax -= taxRes.tax;
-                taxesApplied.push({
-                    name: tax.name,
-                    rate: tax.value,
-                    taxAmount: Number(taxRes.tax.toFixed(2))
-                });
+            // IR aplicado sobre lucro positivo
+            let taxesApplied = [];
+            let taxesToday = 0;
+            if (grossProfitTotal > 0) {
+                const irAmount = grossProfitTotal * 0.15; // 15% sobre lucro
+                taxesApplied.push({ name: "IR Cripto", rate: 15, taxAmount: Number(irAmount.toFixed(2)) });
+                taxesToday = Number(irAmount.toFixed(2));
+                totalTaxesPaid = startingFee + irAmount; // total acumulado incluindo corretagem
+            } else {
+                totalTaxesPaid = startingFee; // sem lucro, só corretagem
             }
-            if (tax.appliesTo === "profit") {
-                // só aplica IR se netTotal líquido até agora for maior que o investimento inicial
-                const lucroLiquido = netTotal - initialAmount;
-                if (lucroLiquido > 0) {
-                    const taxRes = taxProcessor.process(tax, profitAfterTax, day);
-                    profitAfterTax = taxRes.after;
+
+            // lucro líquido do dia
+            const dailyProfit = day === 1 
+                ? price - initialAmount - totalTaxesPaid
+                : (price - initialAmount - totalTaxesPaid) - (dailyResults[day - 2].netTotal - initialAmount);
+
+            const netTotal = price - totalTaxesPaid;
+            if(day === 1){
+                taxesApplied.push(corretagem ? { name: "Corretagem", rate: 0, taxAmount: Number(startingFee.toFixed(2)) } : null);
+            } else if(day === lastDay){
+                taxesApplied.push(corretagem ? { name: "Corretagem", rate: 0, taxAmount: Number(endingFee.toFixed(2)) } : null);
+                totalTaxesPaid += endingFee;
+            }
+            dailyResults.push({
+                day,
+                dailyProfit: Number(dailyProfit.toFixed(2)),
+                taxesApplied,
+                taxesToday: Number(taxesToday.toFixed(2)),
+                grossProfitTotal: Number(grossProfitTotal.toFixed(2)),
+                totalTaxesPaid: Number(totalTaxesPaid.toFixed(2)),
+                netTotal: Number(netTotal.toFixed(2)),
+                price: Number(price.toFixed(2)),
+                variationPercent: Number(variationPercent.toFixed(2))
+            });
+        }
+
+        // Desconta a corretagem final no total líquido
+        const finalNetTotal = dailyResults[dailyResults.length - 1].netTotal - endingFee;
+
+        return {
+            formulaId: formula.id,
+            formulaName: formula.name,
+            initialAmount,
+            startingFee: Number(startingFee.toFixed(2)),
+            endingFee: Number(endingFee.toFixed(2)),
+            grossTotal: Number((initialAmount + grossProfitTotal).toFixed(2)),
+            totalTaxesPaid: Number((totalTaxesPaid + endingFee).toFixed(2)),
+            netTotal: Number(finalNetTotal.toFixed(2)),
+            totalValue: Number(finalNetTotal.toFixed(2)),
+            dailyResults
+        };
+    },
+
+
+    processRendaFixa: (formula, firstDay, lastDay) => {
+        const inv = formula.Investments[0];
+        let initialAmount = Number(inv.amount);
+        let netTotal = initialAmount;
+        let grossProfitTotal = 0;
+        let totalTaxesPaid = 0;
+        const dailyResults = [];
+
+        let dailyRate = 0;
+        dailyRate = Math.pow(1 + inv.interestRate / 100, 1 / 365) - 1;
+
+        for (let day = 1; day <= lastDay; day++) {
+            const dailyProfit = netTotal * dailyRate;
+            let profitAfterTax = dailyProfit;
+
+            const taxesApplied = [];
+            const autoTaxes = formulaService.getAutomaticTaxes(inv, day);
+            if(netTotal < initialAmount){
+                profitAfterTax = dailyProfit; // sem impostos se estiver no prejuízo
+            } else {
+                for (const tax of autoTaxes.filter(t => t.appliesTo === "profit")) {
+                    const taxRes = taxProcessor.process(tax, profitAfterTax);
                     taxesApplied.push({
                         name: tax.name,
                         rate: tax.value,
                         taxAmount: Number(taxRes.tax.toFixed(2))
                     });
+                    profitAfterTax = taxRes.after;
                 }
             }
+            const taxesToday = dailyProfit - profitAfterTax;
+            totalTaxesPaid += taxesToday;
+            grossProfitTotal += dailyProfit;
+            netTotal += profitAfterTax;
+
+            dailyResults.push({
+                day,
+                dailyProfit: Number(dailyProfit.toFixed(2)),
+                taxesApplied,
+                taxesToday: Number(taxesToday.toFixed(2)),
+                grossProfitTotal: Number(grossProfitTotal.toFixed(2)),
+                totalTaxesPaid: Number(totalTaxesPaid.toFixed(2)),
+                netTotal: Number(netTotal.toFixed(2))
+            });
         }
 
-        const taxesToday = dailyProfit - profitAfterTax;
-
-        totalTaxesPaid += taxesToday;
-        grossProfitTotal += dailyProfit;
-        netTotal += profitAfterTax;
-
-        dailyResults.push({
-            day,
-            dailyProfit: Number(dailyProfit.toFixed(2)),
-            taxesApplied,
-            taxesToday: Number(taxesToday.toFixed(2)),
-            grossProfitTotal: Number(grossProfitTotal.toFixed(2)),
+        return {
+            formulaId: formula.id,
+            formulaName: formula.name,
+            initialAmount,
+            grossTotal: Number((initialAmount + grossProfitTotal).toFixed(2)),
             totalTaxesPaid: Number(totalTaxesPaid.toFixed(2)),
             netTotal: Number(netTotal.toFixed(2)),
-            variationPercent: Number(variationPercent.toFixed(2))
-        });
-    }
+            totalValue: Number(netTotal.toFixed(2)),
+            dailyResults
+        };
 
-    // desconto taxa de saída
-    if (corretagem) {
-        netTotal -= endingFee;
-        totalTaxesPaid += endingFee;
-    }
+    },
+    processAcao: (formula, firstDay, lastDay) => {
+        const inv = formula.Investments[0];
+        let initialAmount = Number(inv.amount);
+        let price = initialAmount;
 
-    return {
-        formulaId: formula.id,
-        formulaName: formula.name,
-        initialAmount,
-        startingFee: startingFee ? Number(startingFee.toFixed(2)) : undefined,
-        endingFee: endingFee ? Number(endingFee.toFixed(2)) : undefined,
-        grossTotal: Number((initialAmount + grossProfitTotal).toFixed(2)),
-        totalTaxesPaid: Number(totalTaxesPaid.toFixed(2)),
-        netTotal: Number(netTotal.toFixed(2)),
-        totalValue: Number(netTotal.toFixed(2)),
-        dailyResults
-    };
-},
+        let totalTaxesPaid = 0;
+        let grossProfitTotal = 0;
+
+        const dailyResults = [];
+
+        // Corretagem
+        let startingFee = 0;
+        let endingFee = 0;
+        const corretagem = formula.Taxes.find(t => t.name === "Corretagem");
+        if (corretagem) {
+            startingFee = taxProcessor.process(corretagem, initialAmount).tax;
+            endingFee = taxProcessor.process(corretagem, initialAmount).tax;
+            price -= startingFee; // desconto da corretagem inicial
+            totalTaxesPaid += startingFee;
+        }
+
+        const randomStockOscillation = (currentPrice) => {
+            const variation = Math.random() * 6 - 3; // -3% a +3%
+            return { 
+                newPrice: currentPrice * (1 + variation / 100), 
+                variationPercent: variation 
+            };
+        };
+
+        for (let day = 1; day <= lastDay; day++) {
+            const { newPrice, variationPercent } = randomStockOscillation(price);
+            price = newPrice;
+
+            // lucro bruto acumulado em relação ao inicial
+            grossProfitTotal = price - initialAmount;
+
+            // IR aplicado sobre lucro positivo
+            let taxesApplied = [];
+            let taxesToday = 0;
+            if (grossProfitTotal > 0) {
+                const irAmount = grossProfitTotal * 0.15; // 15% sobre lucro
+                taxesApplied.push({ name: "IR Acao", rate: 15, taxAmount: Number(irAmount.toFixed(2)) });
+                taxesToday = Number(irAmount.toFixed(2));
+                totalTaxesPaid = startingFee + irAmount; // total acumulado incluindo corretagem
+            } else {
+                totalTaxesPaid = startingFee; // sem lucro, só corretagem
+            }
+
+            // lucro líquido do dia
+            const dailyProfit = day === 1 
+                ? price - initialAmount - totalTaxesPaid
+                : (price - initialAmount - totalTaxesPaid) - (dailyResults[day - 2].netTotal - initialAmount);
+
+            const netTotal = price - totalTaxesPaid;
+            if(day === 1){
+                taxesApplied.push(corretagem ? { name: "Corretagem", rate: 0, taxAmount: Number(startingFee.toFixed(2)) } : null);
+            } else if(day === lastDay){
+                taxesApplied.push(corretagem ? { name: "Corretagem", rate: 0, taxAmount: Number(endingFee.toFixed(2)) } : null);
+                totalTaxesPaid += endingFee;
+            }
+            dailyResults.push({
+                day,
+                dailyProfit: Number(dailyProfit.toFixed(2)),
+                taxesApplied,
+                taxesToday: Number(taxesToday.toFixed(2)),
+                grossProfitTotal: Number(grossProfitTotal.toFixed(2)),
+                totalTaxesPaid: Number(totalTaxesPaid.toFixed(2)),
+                netTotal: Number(netTotal.toFixed(2)),
+                price: Number(price.toFixed(2)),
+                variationPercent: Number(variationPercent.toFixed(2))
+            });
+        }
+
+        // Desconta a corretagem final no total líquido
+        const finalNetTotal = dailyResults[dailyResults.length - 1].netTotal - endingFee;
+
+        return {
+            formulaId: formula.id,
+            formulaName: formula.name,
+            initialAmount,
+            startingFee: Number(startingFee.toFixed(2)),
+            endingFee: Number(endingFee.toFixed(2)),
+            grossTotal: Number((initialAmount + grossProfitTotal).toFixed(2)),
+            totalTaxesPaid: Number((totalTaxesPaid + endingFee).toFixed(2)),
+            netTotal: Number(finalNetTotal.toFixed(2)),
+            totalValue: Number(finalNetTotal.toFixed(2)),
+            dailyResults
+        };
+    },
+
+
+
+    processCambio: (formula, firstDay, lastDay) => {
+        const inv = formula.Investments[0];
+        let initialAmount = Number(inv.amount);
+        let price = initialAmount;
+
+        let totalTaxesPaid = 0;
+        let grossProfitTotal = 0;
+
+        const dailyResults = [];
+
+        // Corretagem
+        let startingFee = 0;
+        let endingFee = 0;
+        const corretagem = formula.Taxes.find(t => t.name === "Corretagem");
+        if (corretagem) {
+            startingFee = taxProcessor.process(corretagem, initialAmount).tax;
+            endingFee = taxProcessor.process(corretagem, initialAmount).tax;
+            price -= startingFee; // desconto da corretagem inicial
+            totalTaxesPaid += startingFee;
+        }
+
+        const dailyOscillation = (currentAmount) => { 
+            const variationPercent = (Math.random() * 2 - 1); 
+            return { newAmount: currentAmount * (1 + variationPercent / 100), variationPercent }; 
+        };
+
+        for (let day = 1; day <= lastDay; day++) {
+            const { newAmount, variationPercent } = dailyOscillation(price);
+                price = newAmount;
+
+            // lucro bruto acumulado em relação ao inicial
+            grossProfitTotal = price - initialAmount;
+
+            // IR aplicado sobre lucro positivo
+            let taxesApplied = [];
+            let taxesToday = 0;
+            if (grossProfitTotal > 0) {
+                const irAmount = grossProfitTotal * 0.15; // 15% sobre lucro
+                taxesApplied.push({ name: "IR Cripto", rate: 15, taxAmount: Number(irAmount.toFixed(2)) });
+                taxesToday = Number(irAmount.toFixed(2));
+                totalTaxesPaid = startingFee + irAmount; // total acumulado incluindo corretagem
+            } else {
+                totalTaxesPaid = startingFee; // sem lucro, só corretagem
+            }
+
+            // lucro líquido do dia
+            const dailyProfit = day === 1 
+                ? price - initialAmount - totalTaxesPaid
+                : (price - initialAmount - totalTaxesPaid) - (dailyResults[day - 2].netTotal - initialAmount);
+
+            const netTotal = price - totalTaxesPaid;
+            if(day === 1){
+                taxesApplied.push(corretagem ? { name: "Corretagem", rate: 0, taxAmount: Number(startingFee.toFixed(2)) } : null);
+            } else if(day === lastDay){
+                taxesApplied.push(corretagem ? { name: "Corretagem", rate: 0, taxAmount: Number(endingFee.toFixed(2)) } : null);
+                totalTaxesPaid += endingFee;
+            }
+            dailyResults.push({
+                day,
+                dailyProfit: Number(dailyProfit.toFixed(2)),
+                taxesApplied,
+                taxesToday: Number(taxesToday.toFixed(2)),
+                grossProfitTotal: Number(grossProfitTotal.toFixed(2)),
+                totalTaxesPaid: Number(totalTaxesPaid.toFixed(2)),
+                netTotal: Number(netTotal.toFixed(2)),
+                price: Number(price.toFixed(2)),
+                variationPercent: Number(variationPercent.toFixed(2))
+            });
+        }
+
+        // Desconta a corretagem final no total líquido
+        const finalNetTotal = dailyResults[dailyResults.length - 1].netTotal - endingFee;
+
+        return {
+            formulaId: formula.id,
+            formulaName: formula.name,
+            initialAmount,
+            startingFee: Number(startingFee.toFixed(2)),
+            endingFee: Number(endingFee.toFixed(2)),
+            grossTotal: Number((initialAmount + grossProfitTotal).toFixed(2)),
+            totalTaxesPaid: Number((totalTaxesPaid + endingFee).toFixed(2)),
+            netTotal: Number(finalNetTotal.toFixed(2)),
+            totalValue: Number(finalNetTotal.toFixed(2)),
+            dailyResults
+        };
+    },
 
     processFormula: async (formula, firstDay, lastDay) => {
         const inv = formula.Investments[0];
