@@ -6,17 +6,6 @@ interface TaxFormProps {
 export function TaxForm({ taxForm, setTaxForm }: TaxFormProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div className="md:col-span-2">
-        <label className="block text-sm font-medium text-gray-600 mb-2">Nome da Taxa</label>
-        <input
-          type="text"
-          placeholder="Ex: IR, Taxa de Corretagem, etc."
-          value={taxForm.name}
-          onChange={(e) => setTaxForm({ ...taxForm, name: e.target.value })}
-          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-800 font-medium transition-all duration-200"
-          required
-        />
-      </div>
       <div>
         <label className="block text-sm font-medium text-gray-600 mb-2">Modo</label>
         <select
@@ -49,9 +38,7 @@ export function TaxForm({ taxForm, setTaxForm }: TaxFormProps) {
           onChange={(e) => setTaxForm({ ...taxForm, appliesTo: e.target.value })}
           className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-800 font-medium transition-all duration-200 bg-white"
         >
-          <option value="profit">Lucro</option>
           <option value="initial">Valor Inicial</option>
-          <option value="total">Valor Total</option>
         </select>
       </div>
     </div>
@@ -87,14 +74,13 @@ export function InvestmentForm({ invForm, setInvForm }: InvestmentFormProps) {
         >
           <option value="RendaFixa">💰 Renda Fixa</option>
           <option value="Acao">📈 Ação</option>
-          <option value="FII">🏢 Fundo Imobiliário</option>
           <option value="Cripto">₿ Criptomoeda</option>
           <option value="Cambio">💱 Câmbio</option>
         </select>
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-600 mb-2">
-          Taxa de Juros {invForm.interestRateType === "percent" ? "(%)" : "(R$)"}
+          Taxa de Rendimento {invForm.interestRateType === "percent" ? "(%)" : "(R$)"}
         </label>
         <input
           type="number"
@@ -106,31 +92,11 @@ export function InvestmentForm({ invForm, setInvForm }: InvestmentFormProps) {
         />
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-600 mb-2">Tipo de Taxa</label>
-        <select
-          value={invForm.interestRateType}
-          onChange={(e) => setInvForm({ ...invForm, interestRateType: e.target.value })}
-          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-800 font-medium transition-all duration-200 bg-white"
-        >
-          <option value="percent">Percentual (%)</option>
-          <option value="currency">Valor Fixo (R$)</option>
-        </select>
-      </div>
-      <div>
         <label className="block text-sm font-medium text-gray-600 mb-2">Data de Início</label>
         <input
           type="date"
           value={invForm.startDate ?? ""}
           onChange={(e) => setInvForm({ ...invForm, startDate: e.target.value })}
-          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-800 font-medium transition-all duration-200"
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-600 mb-2">Data de Fim (opcional)</label>
-        <input
-          type="date"
-          value={invForm.endDate ?? ""}
-          onChange={(e) => setInvForm({ ...invForm, endDate: e.target.value })}
           className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-800 font-medium transition-all duration-200"
         />
       </div>

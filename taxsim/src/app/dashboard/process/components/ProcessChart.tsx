@@ -1,3 +1,5 @@
+"use client";
+
 import {
   LineChart,
   Line,
@@ -9,104 +11,105 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-interface ProcessChartProps {
-  data: any[];
-  viewMode: 'days' | 'months';
-  onToggleViewMode: () => void;
+interface DailyResult {
+  day: number;
+  grossIfWithdrawn: number | string | null;
+  netIfWithdrawn: number | string | null;
+  taxesIfWithdrawnAmount: number | string | null;
 }
 
-export default function ProcessChart({ data, viewMode, onToggleViewMode }: ProcessChartProps) {
+interface ProcessChartProps {
+  data: DailyResult[];
+}
+
+// Função segura para converter para número
+const safeNumber = (value: number | string | null | undefined) => {
+  const n = Number(value);
+  return isNaN(n) ? 0 : n;
+};
+
+export default function ProcessChart({ data }: ProcessChartProps) {
+  if (!data || data.length === 0) return null;
+
+  let accumulatedNet = 0;
+  let accumulatedTaxes = 0;
+
+  const chartData = data.map(d => {
+    const gross = safeNumber(d.grossIfWithdrawn);
+    const net = safeNumber(d.netIfWithdrawn);
+    const taxes = safeNumber(d.taxesIfWithdrawnAmount);
+
+    accumulatedNet += net;
+    accumulatedTaxes += taxes;
+
+    return {
+      period: d.day ?? 0,
+      grossProfitTotal: gross,              // bruto já acumulado
+      netProfitTotal: accumulatedNet,       // acumula líquidos
+      totalTaxesPaidIfWithdraw: accumulatedTaxes, // acumula impostos
+    };
+  });
+
   return (
     <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100 mb-8">
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
-          📈 Evolução do Investimento
-        </h3>
-        <button
-          onClick={onToggleViewMode}
-          className="px-6 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold hover:from-blue-600 hover:to-purple-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-        >
-          {viewMode === 'days' ? '📅 Ver por Meses' : '📆 Ver por Dias'}
-        </button>
-      </div>
+      <h3 className="text-xl font-semibold text-gray-800 mb-6">
+        📈 Evolução do Investimento
+      </h3>
       <div className="w-full h-[450px]">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data}>
+          <LineChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-            <XAxis 
-              dataKey="period" 
+            <XAxis
+              dataKey="period"
               stroke="#6b7280"
               fontSize={12}
               tickLine={false}
               axisLine={false}
+              label={{ value: "Dia", position: "insideBottomRight", offset: 0 }}
             />
-            <YAxis 
+            <YAxis
               stroke="#6b7280"
               fontSize={12}
               tickLine={false}
               axisLine={false}
+              tickFormatter={(value) => `R$ ${value.toFixed(2)}`}
             />
-            <Tooltip 
-              contentStyle={{
-                backgroundColor: '#1f2937',
-                border: 'none',
-                borderRadius: '12px',
-                boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-                color: '#ffffff',
-                fontSize: '14px',
-                fontWeight: '500',
-                padding: '12px 16px'
-              }}
-              labelStyle={{
-                color: '#e5e7eb',
-                fontWeight: '600',
-                marginBottom: '4px'
-              }}
-              itemStyle={{
-                color: '#ffffff',
-                fontWeight: '500',
-                padding: '2px 0'
-              }}
-              formatter={(value: any) => `R$ ${parseFloat(value).toFixed(2)}`}
-              labelFormatter={(label) => viewMode === 'days' ? `Dia ${label}` : `Mês ${label}`}
+            <Tooltip
+              formatter={(value: number) => `R$ ${value.toFixed(2)}`}
+              labelFormatter={(label) => `Dia ${label}`}
             />
-            <Legend 
-              wrapperStyle={{
-                paddingTop: '20px'
-              }}
-              iconType="line"
-              formatter={(value) => {
-                if (value === 'beforeTax') return 'Antes da Taxa';
-                if (value === 'afterTax') return 'Após Taxa';
-                return value;
-              }}
+            <Legend
+              formatter={(value) =>
+                value === "grossProfitTotal" ? "Bruto Acumulado" :
+                value === "netProfitTotal" ? "Líquido Acumulado" :
+                value === "totalTaxesPaidIfWithdraw" ? "Impostos se Resgatados" :
+                value
+              }
             />
             <Line
               type="monotone"
-              dataKey="beforeTax"
-              stroke="url(#gradientBeforeTax)"
+              dataKey="grossProfitTotal"
+              stroke="#3b82f6"
               dot={false}
               strokeWidth={3}
-              name="Antes da Taxa"
+              name="Bruto Acumulado"
             />
             <Line
               type="monotone"
-              dataKey="afterTax"
-              stroke="url(#gradientAfterTax)"
+              dataKey="netProfitTotal"
+              stroke="#10b981"
               dot={false}
               strokeWidth={3}
-              name="Após Taxa"
+              name="Líquido Acumulado"
             />
-            <defs>
-              <linearGradient id="gradientBeforeTax" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stopColor="#3b82f6" />
-                <stop offset="100%" stopColor="#8b5cf6" />
-              </linearGradient>
-              <linearGradient id="gradientAfterTax" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stopColor="#10b981" />
-                <stop offset="100%" stopColor="#06d6a0" />
-              </linearGradient>
-            </defs>
+            <Line
+              type="monotone"
+              dataKey="totalTaxesPaidIfWithdraw"
+              stroke="#f97316"
+              dot={false}
+              strokeWidth={3}
+              name="Impostos se Resgatados"
+            />
           </LineChart>
         </ResponsiveContainer>
       </div>

@@ -1,49 +1,46 @@
 interface ProcessPeriodControlsProps {
-  firstMonth: number;
-  lastMonth: number;
-  onFirstMonthChange: (value: number) => void;
-  onLastMonthChange: (value: number) => void;
+  firstDay: number;
+  lastDay: number;
+  onFirstDayChange: (value: number) => void;
+  onLastDayChange: (value: number) => void;
   onUpdate: () => void;
-  viewMode: 'days' | 'months';
 }
 
 export default function ProcessPeriodControls({
-  firstMonth,
-  lastMonth,
-  onFirstMonthChange,
-  onLastMonthChange,
-  onUpdate,
-  viewMode
+  firstDay,
+  lastDay,
+  onFirstDayChange,
+  onLastDayChange,
+  onUpdate
 }: ProcessPeriodControlsProps) {
-  const isMonthMode = viewMode === 'months';
-  
+
   return (
     <div className="bg-white rounded-3xl p-6 shadow-xl border border-gray-100 mb-8">
       <h3 className="text-lg font-semibold text-gray-800 mb-4">
-        🗺️ Período da Simulação {isMonthMode ? '(Meses)' : '(Dias)'}
+        🗺️ Período da Simulação (Dias)
       </h3>
       <div className="flex flex-wrap gap-4 items-end">
         <div className="min-w-0 flex-1">
           <label className="block text-sm font-medium text-gray-600 mb-2">
-            {isMonthMode ? 'Primeiro mês' : 'Primeiro dia'}
+            Primeiro dia
           </label>
           <input
             type="number"
             min={1}
-            value={firstMonth}
-            onChange={(e) => onFirstMonthChange(parseInt(e.target.value))}
+            value={firstDay}
+            onChange={(e) => onFirstDayChange(parseInt(e.target.value))}
             className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-800 font-medium transition-all duration-200"
           />
         </div>
         <div className="min-w-0 flex-1">
           <label className="block text-sm font-medium text-gray-600 mb-2">
-            {isMonthMode ? 'Último mês' : 'Último dia'}
+            Último dia
           </label>
           <input
             type="number"
-            min={firstMonth}
-            value={lastMonth}
-            onChange={(e) => onLastMonthChange(parseInt(e.target.value))}
+            min={firstDay}
+            value={lastDay}
+            onChange={(e) => onLastDayChange(parseInt(e.target.value))}
             className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-800 font-medium transition-all duration-200"
           />
         </div>

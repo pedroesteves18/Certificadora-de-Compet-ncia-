@@ -56,7 +56,7 @@ export interface ApiInvestment {
   id?: number;
   amount: number;
   factor: number;
-  type: "Ação" | "Fundo Imobiliário" | "Renda Fixa" | "Criptomoeda";
+  type: "Ação"  | "Renda Fixa" | "Criptomoeda";
   formulaId?: number;
 }
 

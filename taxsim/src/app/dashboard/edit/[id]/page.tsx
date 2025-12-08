@@ -28,7 +28,7 @@ export default function EditFormulaPage() {
   const [editingInvId, setEditingInvId] = useState<number | null>(null);
 
   const [taxForm, setTaxForm] = useState({
-    name: "",
+    name: "Corretagem", // fixo
     mode: "percent",
     value: "",
     appliesTo: "profit",
@@ -103,7 +103,7 @@ export default function EditFormulaPage() {
         "/api/taxes",
         {
           formulaId: Number(id),
-          name: taxForm.name,
+          name: "Corretagem", // sempre fixo
           mode: taxForm.mode,
           value: Number(taxForm.value),
           appliesTo: taxForm.appliesTo,
@@ -113,7 +113,7 @@ export default function EditFormulaPage() {
 
       setShowTaxForm(false);
       setTaxForm({
-        name: "",
+        name: "Corretagem",
         mode: "percent",
         value: "",
         appliesTo: "profit",
@@ -130,7 +130,7 @@ export default function EditFormulaPage() {
   const startEditTax = (tax: any) => {
     setEditingTaxId(tax.id);
     setTaxForm({
-      name: tax.name ?? "",
+      name: "Corretagem", // fixo
       mode: tax.mode,
       value: tax.value?.toString() ?? "",
       appliesTo: tax.appliesTo,
@@ -146,7 +146,7 @@ export default function EditFormulaPage() {
       await apiClient.put(
         `/api/taxes/${editingTaxId}`,
         {
-          name: taxForm.name,
+          name: "Corretagem", // fixo
           mode: taxForm.mode,
           value: Number(taxForm.value),
           appliesTo: taxForm.appliesTo,
@@ -177,7 +177,6 @@ export default function EditFormulaPage() {
   // EDIÇÃO DE INVESTIMENTO
   // -------------------------
   const startEditInvestment = (inv: any) => {
-    console.log("Editando investimento:", inv);
     setEditingInvId(inv.id);
     setInvForm({
       amount: inv.amount?.toString() ?? "",
@@ -251,17 +250,10 @@ export default function EditFormulaPage() {
                   <form onSubmit={handleUpdateInvestment}>
                     <InvestmentForm invForm={invForm} setInvForm={setInvForm} />
                     <div className="flex gap-3 mt-4">
-                      <button
-                        type="submit"
-                        className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-2xl hover:from-green-600 hover:to-emerald-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 font-medium"
-                      >
+                      <button type="submit" className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-2xl hover:from-green-600 hover:to-emerald-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 font-medium">
                         ✅ Salvar
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => setEditingInvId(null)}
-                        className="px-6 py-3 bg-gradient-to-r from-gray-400 to-gray-500 text-white rounded-2xl hover:from-gray-500 hover:to-gray-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 font-medium"
-                      >
+                      <button type="button" onClick={() => setEditingInvId(null)} className="px-6 py-3 bg-gradient-to-r from-gray-400 to-gray-500 text-white rounded-2xl hover:from-gray-500 hover:to-gray-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 font-medium">
                         ❌ Cancelar
                       </button>
                     </div>
@@ -303,10 +295,7 @@ export default function EditFormulaPage() {
                       )}
                     </div>
                     <div className="flex gap-3">
-                      <button
-                        onClick={() => startEditInvestment(inv)}
-                        className="px-6 py-3 bg-gradient-to-r from-yellow-400 to-orange-400 text-white rounded-2xl hover:from-yellow-500 hover:to-orange-500 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 font-medium"
-                      >
+                      <button onClick={() => startEditInvestment(inv)} className="px-6 py-3 bg-gradient-to-r from-yellow-400 to-orange-400 text-white rounded-2xl hover:from-yellow-500 hover:to-orange-500 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 font-medium">
                         ✏️ Editar
                       </button>
                     </div>
@@ -334,10 +323,24 @@ export default function EditFormulaPage() {
               )}
             </div>
 
-            {showTaxForm && !editingTaxId && (
+            {showTaxForm && !editingTaxId && !investments.some(inv => inv.type === "RendaFixa") && (
               <div className="mb-6 p-6 border border-blue-200 rounded-2xl bg-blue-50">
                 <form onSubmit={handleCreateTax}>
                   <h3 className="text-lg font-semibold text-blue-800 mb-4">Nova Taxa</h3>
+
+                  {/* Nome fixo */}
+                  <div className="md:col-span-2 mb-4">
+                    <label className="block text-xs font-medium text-black mb-1">
+                      Nome da Corretagem
+                    </label>
+                    <input
+                      type="text"
+                      value="Corretagem"
+                      readOnly
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-black bg-gray-200 cursor-not-allowed"
+                    />
+                  </div>
+
                   <TaxForm taxForm={taxForm} setTaxForm={setTaxForm} />
                   <button
                     type="submit"
@@ -349,12 +352,17 @@ export default function EditFormulaPage() {
               </div>
             )}
 
-            {taxes.length === 0 && (
+            {investments.some(inv => inv.type === "RendaFixa") ? (
+              <div className="text-center py-12">
+                <div className="text-4xl mb-4">📊</div>
+                <p className="text-gray-500 font-medium">Renda Fixa não permite adicionar taxas.</p>
+              </div>
+            ) : taxes.length === 0 ? (
               <div className="text-center py-12">
                 <div className="text-4xl mb-4">📊</div>
                 <p className="text-gray-500 font-medium">Nenhuma taxa cadastrada.</p>
               </div>
-            )}
+            ) : null}
 
             <div className="space-y-4">
               {taxes.map((tax: any) => (
@@ -365,64 +373,57 @@ export default function EditFormulaPage() {
                   {editingTaxId === tax.id ? (
                     <form onSubmit={handleUpdateTax}>
                       <h3 className="text-lg font-semibold text-gray-800 mb-4">Editar Taxa</h3>
+
+                      {/* Nome fixo */}
+                      <div className="md:col-span-2 mb-4">
+                        <label className="block text-xs font-medium text-black mb-1">
+                          Nome da Corretagem
+                        </label>
+                        <input
+                          type="text"
+                          value="Corretagem"
+                          readOnly
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-black bg-gray-200 cursor-not-allowed"
+                        />
+                      </div>
+
                       <TaxForm taxForm={taxForm} setTaxForm={setTaxForm} />
                       <div className="flex gap-3 mt-4">
-                        <button
-                          type="submit"
-                          className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-2xl hover:from-green-600 hover:to-emerald-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 font-medium"
-                        >
+                        <button type="submit" className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-2xl hover:from-green-600 hover:to-emerald-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 font-medium">
                           ✅ Salvar
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => setEditingTaxId(null)}
-                          className="px-6 py-3 bg-gradient-to-r from-gray-400 to-gray-500 text-white rounded-2xl hover:from-gray-500 hover:to-gray-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 font-medium"
-                        >
+                        <button type="button" onClick={() => setEditingTaxId(null)} className="px-6 py-3 bg-gradient-to-r from-gray-400 to-gray-500 text-white rounded-2xl hover:from-gray-500 hover:to-gray-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 font-medium">
                           ❌ Cancelar
                         </button>
                       </div>
                     </form>
                   ) : (
-                    <>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                        <div className="bg-blue-50 rounded-xl p-4">
-                          <p className="text-sm text-blue-600 font-medium mb-1">Nome</p>
-                          <p className="text-xl font-bold text-blue-900">{tax.name}</p>
-                        </div>
-                        <div className="bg-purple-50 rounded-xl p-4">
-                          <p className="text-sm text-purple-600 font-medium mb-1">Modo</p>
-                          <p className="text-xl font-bold text-purple-900">
-                            {tax.mode === 'percent' ? 'Percentual' : 'Fixa'}
-                          </p>
-                        </div>
-                        <div className="bg-red-50 rounded-xl p-4">
-                          <p className="text-sm text-red-600 font-medium mb-1">Valor</p>
-                          <p className="text-xl font-bold text-red-900">
-                            {tax.mode === 'percent' ? `${tax.value}%` : `R$ ${tax.value.toFixed(2)}`}
-                          </p>
-                        </div>
-                        <div className="bg-green-50 rounded-xl p-4">
-                          <p className="text-sm text-green-600 font-medium mb-1">Aplica em</p>
-                          <p className="text-xl font-bold text-green-900">
-                            {tax.appliesTo === 'profit' ? 'Lucro' : tax.appliesTo === 'initial' ? 'Valor Inicial' : 'Valor Total'}
-                          </p>
-                        </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                      <div className="bg-blue-50 rounded-xl p-4">
+                        <p className="text-sm text-blue-600 font-medium mb-1">Nome</p>
+                        <p className="text-xl font-bold text-blue-900">{tax.name}</p>
                       </div>
-                      <div className="flex gap-3">
-                        <button
-                          onClick={() => startEditTax(tax)}
-                          className="px-6 py-3 bg-gradient-to-r from-yellow-400 to-orange-400 text-white rounded-2xl hover:from-yellow-500 hover:to-orange-500 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 font-medium"
-                        >
+                      <div className="bg-purple-50 rounded-xl p-4">
+                        <p className="text-sm text-purple-600 font-medium mb-1">Modo</p>
+                        <p className="text-xl font-bold text-purple-900">{tax.mode === 'percent' ? 'Percentual' : 'Fixa'}</p>
+                      </div>
+                      <div className="bg-red-50 rounded-xl p-4">
+                        <p className="text-sm text-red-600 font-medium mb-1">Valor</p>
+                        <p className="text-xl font-bold text-red-900">{tax.mode === 'percent' ? `${tax.value}%` : `R$ ${tax.value.toFixed(2)}`}</p>
+                      </div>
+                      <div className="bg-green-50 rounded-xl p-4">
+                        <p className="text-sm text-green-600 font-medium mb-1">Aplica em</p>
+                        <p className="text-xl font-bold text-green-900">{tax.appliesTo === 'profit' ? 'Lucro' : tax.appliesTo === 'initial' ? 'Valor Inicial' : 'Valor Total'}</p>
+                      </div>
+                      <div className="flex gap-3 mt-2">
+                        <button onClick={() => startEditTax(tax)} className="px-6 py-3 bg-gradient-to-r from-yellow-400 to-orange-400 text-white rounded-2xl hover:from-yellow-500 hover:to-orange-500 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 font-medium">
                           ✏️ Editar
                         </button>
-                        <button
-                          onClick={() => handleDeleteTax(tax.id)}
-                          className="px-6 py-3 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-2xl hover:from-red-600 hover:to-pink-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 font-medium"
-                        >
+                        <button onClick={() => handleDeleteTax(tax.id)} className="px-6 py-3 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-2xl hover:from-red-600 hover:to-pink-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 font-medium">
                           🗑️ Remover
                         </button>
                       </div>
-                    </>
+                    </div>
                   )}
                 </div>
               ))}

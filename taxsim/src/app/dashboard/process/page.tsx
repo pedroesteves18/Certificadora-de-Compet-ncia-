@@ -51,7 +51,7 @@ export default function ProcessPage() {
         return;
       }
 
-      const API = process.env.NEXT_PUBLIC_API_URL ?? "http://ec2-3-238-112-88.compute-1.amazonaws.com:5000";
+      const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
 
       // Verificar se há parâmetro isSpot na URL
       const search = new URLSearchParams(window.location.search);

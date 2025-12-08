@@ -102,30 +102,6 @@ export default function FormulaCard({ formula, token, onDelete }: FormulaCardPro
         </div>
       </div>
 
-      {/* Informações das taxas */}
-      <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-4 mb-6">
-        <h5 className="text-sm font-semibold text-purple-800 mb-2 flex items-center gap-1">
-          📉 Tributações
-        </h5>
-        {formula.Taxes?.length > 0 ? (
-          <div className="space-y-2">
-            {formula.Taxes.slice(0, 2).map((t) => (
-              <div key={t.id} className="flex justify-between items-center text-xs">
-                <span className="text-purple-600 font-medium">{t.name}:</span>
-                <span className="font-bold text-purple-900">
-                  {t.mode === "percent" ? `${t.value}%` : `R$ ${t.value.toFixed(2)}`} • {taxAppliesToLabels[t.appliesTo] || t.appliesTo}
-                </span>
-              </div>
-            ))}
-            {formula.Taxes.length > 2 && (
-              <p className="text-xs text-purple-500 font-medium">+{formula.Taxes.length - 2} mais...</p>
-            )}
-          </div>
-        ) : (
-          <p className="text-xs text-purple-600 italic">Nenhuma taxa configurada</p>
-        )}
-      </div>
-
       {/* Botões de ação */}
       <div className="flex gap-2">
         <Link

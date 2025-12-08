@@ -22,17 +22,18 @@ export default function ProcessTable({ data, viewMode }: ProcessTableProps) {
           </thead>
           <tbody className="divide-y divide-gray-100">
             {data.map((r: any, index: number) => (
-              <tr key={r.period} className={`hover:bg-gray-50 transition-colors duration-200 ${
+              <tr key={r?.day} className={`hover:bg-gray-50 transition-colors duration-200 ${
                 index % 2 === 0 ? 'bg-white' : 'bg-gray-25'
               }`}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                    {viewMode === 'days' ? `Dia ${r.period}` : `Mês ${r.period}`}
+                    {viewMode === 'days' ? `Dia ${r?.day}` : `Mês ${r?.day}`}
                   </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-medium">R$ {r.beforeTax}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-medium">R$ {r.afterTax}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-medium">R$ {r.grossProfitTotal.toFixed(2)}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-medium">R$ {r.netTotal.toFixed(2)}</td>
               </tr>
+
             ))}
           </tbody>
         </table>

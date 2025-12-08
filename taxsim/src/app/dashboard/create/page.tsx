@@ -22,7 +22,7 @@ export type LocalTax = {
   name: string;
   mode: "percent" | "fixed";
   value: number;
-  appliesTo: "profit" | "initial" | "total";
+  appliesTo: "initial";
 };
 
 // Opções dos selects
@@ -37,7 +37,6 @@ const investmentTypes: LocalInvestment["type"][] = [
 const investmentTypeLabels: Record<LocalInvestment["type"], string> = {
   RendaFixa: "Renda Fixa",
   Acao: "Ação",
-  FII: "Fundo Imobiliário",
   Cripto: "Criptomoeda",
   Cambio: "Câmbio",
 };
@@ -48,11 +47,9 @@ const taxModeLabels: Record<LocalTax["mode"], string> = {
   fixed: "Fixa",
 };
 
-const taxAppliesTo: LocalTax["appliesTo"][] = ["profit", "initial", "total"];
+const taxAppliesTo: LocalTax["appliesTo"][] = ["initial"];
 const taxAppliesToLabels: Record<LocalTax["appliesTo"], string> = {
-  profit: "Lucro",
-  initial: "Valor Inicial",
-  total: "Valor Total",
+  initial: "Valor Inicial"
 };
 
 // ---------------------------------------------------
@@ -91,7 +88,7 @@ export default function CreateFormulaPage() {
     setTaxes([
       ...taxes,
       {
-        name: "",
+        name: "Corretagem",
         mode: "percent",
         value: 15,
         appliesTo: "profit",
@@ -208,17 +205,6 @@ export default function CreateFormulaPage() {
               required
             />
 
-            <div className="mt-4">
-              <label className="flex items-center gap-2 text-black font-medium cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={includeIOF}
-                  onChange={(e) => setIncludeIOF(e.target.checked)}
-                  className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-                />
-                <span>Incluir IOF (Imposto sobre Operações Financeiras)</span>
-              </label>
-            </div>
           </div>
 
           {/* ---------------- Seção 2: Investimento ---------------- */}
@@ -260,7 +246,7 @@ export default function CreateFormulaPage() {
               {/* Taxa de Juros */}
               <div>
                 <label className="block text-black font-medium mb-2">
-                  Taxa de Juros
+                  Rendimento
                 </label>
                 <input
                   type="number"
@@ -269,21 +255,6 @@ export default function CreateFormulaPage() {
                   onChange={(e) => handleInvestmentChange("interestRate", e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 text-black"
                 />
-              </div>
-
-              {/* Tipo de Taxa */}
-              <div>
-                <label className="block text-black font-medium mb-2">
-                  Tipo de Taxa
-                </label>
-                <select
-                  value={investment.interestRateType}
-                  onChange={(e) => handleInvestmentChange("interestRateType", e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-white focus:ring-2 focus:ring-blue-500 text-black"
-                >
-                  <option value="percent">Percentual (%)</option>
-                  <option value="currency">Valor Fixo (R$)</option>
-                </select>
               </div>
 
               {/* Data de Início */}
@@ -299,125 +270,119 @@ export default function CreateFormulaPage() {
                   required
                 />
               </div>
-
-              {/* Data de Fim (opcional) */}
-              <div>
-                <label className="block text-black font-medium mb-2">
-                  Data de Fim (opcional)
-                </label>
-                <input
-                  type="date"
-                  value={investment.endDate ?? ""}
-                  onChange={(e) => handleInvestmentChange("endDate", e.target.value || null)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 text-black"
-                />
-              </div>
             </div>
           </div>
 
-          {/* ---------------- Seção 3: Taxas ---------------- */}
-          <div className="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-semibold text-gray-800">
-                3. Taxas e Impostos
-              </h2>
+          {/* ---------------- Seção 3: Corretagem ---------------- */}
+{/* ---------------- Seção 3: Corretagem ---------------- */}
+<div className="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
+  <div className="flex justify-between items-center mb-6">
+    <h2 className="text-2xl font-semibold text-gray-800">
+      3. Corretagem
+    </h2>
 
-              <button
-                type="button"
-                onClick={addTax}
-                className="px-5 py-2 rounded-xl bg-green-500 text-white font-semibold hover:bg-green-600"
-              >
-                + Adicionar Taxa
-              </button>
-            </div>
+    <button
+      type="button"
+      onClick={addTax}
+      disabled={investment.type === "RendaFixa"}
+      className={`px-5 py-2 rounded-xl bg-green-500 text-white font-semibold hover:bg-green-600 ${
+        investment.type === "RendaFixa" ? "opacity-50 cursor-not-allowed" : ""
+      }`}
+    >
+      + Adicionar Corretagem
+    </button>
+  </div>
 
-            <div className="space-y-6">
-              {taxes.map((tax, index) => (
-                <div
-                  key={index}
-                  className="p-4 border rounded-lg bg-gray-50/50 relative"
-                >
-                  <button
-                    type="button"
-                    onClick={() => removeTax(index)}
-                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center font-bold text-sm"
-                  >
-                    ✕
-                  </button>
+  <div className="space-y-6">
+    {taxes.map((tax, index) => (
+      <div
+        key={index}
+        className="p-4 border rounded-lg bg-gray-50/50 relative"
+      >
+        <button
+          type="button"
+          onClick={() => removeTax(index)}
+          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center font-bold text-sm"
+        >
+          ✕
+        </button>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="md:col-span-2">
-                      <label className="block text-xs font-medium text-black mb-1">
-                        Nome da Taxa
-                      </label>
-                      <input
-                        type="text"
-                        value={tax.name}
-                        onChange={(e) => handleTaxChange(index, "name", e.target.value)}
-                        placeholder="Ex: IR, Taxa de Corretagem, etc."
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-black"
-                        required
-                      />
-                    </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="md:col-span-2">
+            <label className="block text-xs font-medium text-black mb-1">
+              Nome da Corretagem
+            </label>
+            <input
+              type="text"
+              value="Corretagem"
+              readOnly
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-black bg-gray-200 cursor-not-allowed"
+            />
+          </div>
 
-                    <div>
-                      <label className="block text-xs font-medium text-black mb-1">
-                        Modo
-                      </label>
-                      <select
-                        value={tax.mode}
-                        onChange={(e) => handleTaxChange(index, "mode", e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-black"
-                      >
-                        {taxModes.map((m) => (
-                          <option key={m} value={m}>
-                            {taxModeLabels[m]}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-medium text-black mb-1">
-                        Valor {tax.mode === "percent" ? "(%)" : "(R$)"}
-                      </label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={tax.value}
-                        onChange={(e) => handleTaxChange(index, "value", e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-black"
-                        required
-                      />
-                    </div>
-
-                    <div className="md:col-span-2">
-                      <label className="block text-xs font-medium text-black mb-1">
-                        Aplica-se sobre
-                      </label>
-                      <select
-                        value={tax.appliesTo}
-                        onChange={(e) => handleTaxChange(index, "appliesTo", e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-black"
-                      >
-                        {taxAppliesTo.map((a) => (
-                          <option key={a} value={a}>
-                            {taxAppliesToLabels[a]}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                </div>
+          <div>
+            <label className="block text-xs font-medium text-black mb-1">
+              Modo
+            </label>
+            <select
+              value={tax.mode}
+              onChange={(e) => handleTaxChange(index, "mode", e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-black"
+            >
+              {taxModes.map((m) => (
+                <option key={m} value={m}>
+                  {taxModeLabels[m]}
+                </option>
               ))}
-
-              {taxes.length === 0 && (
-                <p className="text-gray-500 text-center py-4">
-                  Nenhuma taxa adicionada. Clique no botão acima para adicionar.
-                </p>
-              )}
-            </div>
+            </select>
           </div>
+
+          <div>
+            <label className="block text-xs font-medium text-black mb-1">
+              Valor {tax.mode === "percent" ? "(%)" : "(R$)"}
+            </label>
+            <input
+              type="number"
+              step="0.01"
+              value={tax.value}
+              onChange={(e) => handleTaxChange(index, "value", e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-black"
+              required
+            />
+          </div>
+
+          <div className="md:col-span-2">
+            <label className="block text-xs font-medium text-black mb-1">
+              Aplica-se sobre
+            </label>
+            <select
+              value={tax.appliesTo}
+              onChange={(e) => handleTaxChange(index, "appliesTo", e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-black"
+            >
+              {taxAppliesTo.map((a) => (
+                <option key={a} value={a}>
+                  {taxAppliesToLabels[a]}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+    ))}
+
+    {investment.type === "RendaFixa" ? (
+      <p className="text-gray-500 text-center py-4">
+        Renda Fixa não permite adicionar corretagem.
+      </p>
+    ) : taxes.length === 0 ? (
+      <p className="text-gray-500 text-center py-4">
+        Nenhuma corretagem adicionada. Clique no botão acima para adicionar.
+      </p>
+    ) : null}
+  </div>
+</div>
+
 
           {error && (
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl">
