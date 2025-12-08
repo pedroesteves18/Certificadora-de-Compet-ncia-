@@ -51,7 +51,7 @@ export default function ProcessPage() {
         return;
       }
 
-      const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
+      const API = process.env.NEXT_PUBLIC_API_URL ?? "http://ec2-3-238-112-88.compute-1.amazonaws.com:5000";
 
       // Verificar se há parâmetro isSpot na URL
       const search = new URLSearchParams(window.location.search);
@@ -174,46 +174,6 @@ export default function ProcessPage() {
           <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
             Simulação — {data.name}
           </h1>
-
-        {/* Botão de download CSV */}
-        <button
-          onClick={async () => {
-            if (!data?.id) return;
-
-            try {
-              const token = localStorage.getItem("token");
-              
-              if (!token) throw new Error("Usuário não autenticado.");
-
-              const res = await fetch(
-                `http://ec2-3-238-112-88.compute-1.amazonaws.com:5000/api/formulas/csv/${data.id}?firstMonth=${firstMonth}&lastMonth=${lastMonth}`,
-                {
-                  headers: {
-                    Authorization: `Bearer ${token}`,
-                  },
-                }
-              );
-
-              if (!res.ok) throw new Error("Erro ao gerar CSV.");
-
-              const blob = await res.blob();
-              const url = window.URL.createObjectURL(blob);
-              const link = document.createElement("a");
-              link.href = url;
-              link.download = `${data.name}.csv`;
-              document.body.appendChild(link);
-              link.click();
-              link.remove();
-              window.URL.revokeObjectURL(url);
-            } catch (err) {
-              console.error(err);
-              alert("Erro ao baixar CSV.");
-            }
-          }}
-          className="px-6 py-3 rounded-2xl bg-gradient-to-r from-green-500 to-emerald-500 text-white font-semibold hover:from-green-600 hover:to-emerald-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-        >
-          📄 Download CSV
-        </button>
       </div>
 
         <div className="bg-white rounded-3xl p-6 shadow-xl border border-gray-100 mb-8">

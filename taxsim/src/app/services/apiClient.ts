@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://ec2-3-238-112-88.compute-1.amazonaws.com:5000";
 
 interface RequestOptions {
   method: string;
