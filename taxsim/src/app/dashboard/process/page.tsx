@@ -14,6 +14,7 @@ export default function ProcessPage() {
   const [formulaId, setFormulaId] = useState<string | null>(null);
   const [firstMonth, setFirstMonth] = useState(1);
   const [lastMonth, setLastMonth] = useState(12);
+  const [viewMode, setViewMode] = useState<'days' | 'months'>('months');
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -56,9 +57,17 @@ export default function ProcessPage() {
       const search = new URLSearchParams(window.location.search);
       const isSpot = search.get("isSpot") === "true";
 
-      // Converter meses para dias (30 dias por mês)
-      const firstDay = fm * 30;
-      const lastDay = lm * 30;
+      // Converter para dias
+      let firstDay, lastDay;
+      if (viewMode === 'days') {
+        // Modo dias: usar valores diretos
+        firstDay = Math.max(1, fm);
+        lastDay = Math.max(firstDay, lm);
+      } else {
+        // Modo meses: converter meses para dias (30 dias por mês)
+        firstDay = fm * 30;
+        lastDay = lm * 30;
+      }
 
       const res = await fetch(
         `${API}/api/formulas/process?firstDay=${firstDay}&lastDay=${lastDay}&isSpot=${isSpot}&id=${formulaId}`,
@@ -80,18 +89,31 @@ export default function ProcessPage() {
         throw new Error("Estrutura de dados inválida retornada pela API");
       }
 
-      // Agrupar dados por mês (pegar o último dia de cada mês)
-      const monthlyData: any = {};
-      processedData.dailyResults.forEach((dayData: any) => {
-        const monthIndex = Math.floor(dayData.day / 30) + 1;
-        monthlyData[monthIndex] = {
-          month: monthIndex,
-          beforeTax: dayData.grossProfitTotal + processedData.initialAmount,
-          afterTax: dayData.netTotal,
-        };
-      });
-      
-      const formatted = Object.values(monthlyData);
+      let formatted: any[];
+
+      if (viewMode === 'days') {
+        // Exibir dias dentro do intervalo selecionado
+        formatted = processedData.dailyResults
+          .filter((dayData: any) => dayData.day >= firstDay && dayData.day <= lastDay)
+          .map((dayData: any) => ({
+            period: dayData.day,
+            beforeTax: dayData.grossProfitTotal + processedData.initialAmount,
+            afterTax: dayData.netTotal,
+          }));
+      } else {
+        // Agrupar dados por mês (pegar o último dia de cada mês)
+        const monthlyData: any = {};
+        processedData.dailyResults.forEach((dayData: any) => {
+          const monthIndex = Math.floor((dayData.day - 1) / 30) + 1;
+          monthlyData[monthIndex] = {
+            period: monthIndex,
+            beforeTax: dayData.grossProfitTotal + processedData.initialAmount,
+            afterTax: dayData.netTotal,
+          };
+        });
+        
+        formatted = Object.values(monthlyData);
+      }
 
       setData({
         id: processedData.formulaId,
@@ -111,6 +133,26 @@ export default function ProcessPage() {
     if (!formulaId) return;
     loadData(firstMonth, lastMonth);
   }, [formulaId]);
+
+  useEffect(() => {
+    if (formulaId && data) {
+      loadData(firstMonth, lastMonth);
+    }
+  }, [viewMode]);
+
+  const handleToggleViewMode = () => {
+    const newMode = viewMode === 'days' ? 'months' : 'days';
+    setViewMode(newMode);
+    
+    // Resetar valores ao mudar de modo
+    if (newMode === 'days') {
+      setFirstMonth(1);
+      setLastMonth(30);
+    } else {
+      setFirstMonth(1);
+      setLastMonth(12);
+    }
+  };
 
   if (loading) return <LoadingSkeleton />;
 
@@ -185,11 +227,16 @@ export default function ProcessPage() {
         onFirstMonthChange={setFirstMonth}
         onLastMonthChange={setLastMonth}
         onUpdate={() => loadData(firstMonth, lastMonth)}
+        viewMode={viewMode}
       />
 
-      <ProcessChart data={data.rows} />
+      <ProcessChart 
+        data={data.rows} 
+        viewMode={viewMode}
+        onToggleViewMode={handleToggleViewMode}
+      />
 
-      <ProcessTable data={data.rows} />
+      <ProcessTable data={data.rows} viewMode={viewMode} />
       </div>
     </main>
   );

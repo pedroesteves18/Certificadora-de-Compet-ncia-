@@ -41,7 +41,7 @@ interface ApiFormula {
 
 // Para gráfico
 interface FormulaChartData {
-  month: number;
+  period: number;
   [formulaName: string]: number | undefined;
 }
 
@@ -53,6 +53,7 @@ export default function DashboardPage() {
   const [chartData, setChartData] = useState<FormulaChartData[]>([]);
   const [firstMonth, setFirstMonth] = useState(1);
   const [lastMonth, setLastMonth] = useState(12);
+  const [viewMode, setViewMode] = useState<'days' | 'months'>('months');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -77,9 +78,17 @@ export default function DashboardPage() {
       // Processar cada fórmula para gráfico
       const chartRows: FormulaChartData[] = [];
 
-      // Converter meses para dias (30 dias por mês)
-      const firstDay = fm * 30;
-      const lastDay = lm * 30;
+      // Converter para dias
+      let firstDay, lastDay;
+      if (viewMode === 'days') {
+        // Modo dias: usar valores diretos
+        firstDay = Math.max(1, fm);
+        lastDay = Math.max(firstDay, lm);
+      } else {
+        // Modo meses: converter meses para dias (30 dias por mês)
+        firstDay = fm * 30;
+        lastDay = lm * 30;
+      }
 
       await Promise.all(
         data.formulas.map(async (formula) => {
@@ -97,16 +106,27 @@ export default function DashboardPage() {
             return;
           }
 
-          // Agrupar dados por mês (a cada 30 dias)
-          processedData.dailyResults.forEach((dayData: any, idx: number) => {
-            const monthIndex = Math.floor(dayData.day / 30);
-            if (!chartRows[monthIndex]) chartRows[monthIndex] = { month: monthIndex + 1 };
-            chartRows[monthIndex][formula.name] = dayData.netTotal;
-          });
+          if (viewMode === 'days') {
+            // Exibir dias dentro do intervalo selecionado
+            processedData.dailyResults
+              .filter((dayData: any) => dayData.day >= firstDay && dayData.day <= lastDay)
+              .forEach((dayData: any) => {
+                const index = dayData.day - firstDay;
+                if (!chartRows[index]) chartRows[index] = { period: dayData.day };
+                chartRows[index][formula.name] = dayData.netTotal;
+              });
+          } else {
+            // Agrupar dados por mês (a cada 30 dias)
+            processedData.dailyResults.forEach((dayData: any) => {
+              const monthIndex = Math.floor((dayData.day - 1) / 30);
+              if (!chartRows[monthIndex]) chartRows[monthIndex] = { period: monthIndex + 1 };
+              chartRows[monthIndex][formula.name] = dayData.netTotal;
+            });
+          }
         })
       );
 
-      setChartData(chartRows);
+      setChartData(chartRows.filter(row => row !== undefined));
     } catch (err) {
       console.error(err);
       setError("Erro ao carregar fórmulas ou processar simulações.");
@@ -120,6 +140,26 @@ export default function DashboardPage() {
       loadData(firstMonth, lastMonth);
     }
   }, [authLoading, user, token]);
+
+  useEffect(() => {
+    if (!authLoading && user && token && formulas.length > 0) {
+      loadData(firstMonth, lastMonth);
+    }
+  }, [viewMode]);
+
+  const handleToggleViewMode = () => {
+    const newMode = viewMode === 'days' ? 'months' : 'days';
+    setViewMode(newMode);
+    
+    // Resetar valores ao mudar de modo
+    if (newMode === 'days') {
+      setFirstMonth(1);
+      setLastMonth(30);
+    } else {
+      setFirstMonth(1);
+      setLastMonth(12);
+    }
+  };
 
   if (authLoading || loading) return <LoadingSkeleton />;
 
@@ -149,12 +189,18 @@ export default function DashboardPage() {
               onFirstMonthChange={setFirstMonth}
               onLastMonthChange={setLastMonth}
               onUpdate={() => loadData(firstMonth, lastMonth)}
+              viewMode={viewMode}
             />
           </div>
         </div>
 
         {/* Gráfico geral */}
-        <ChartComponent chartData={chartData} formulas={formulas} />
+        <ChartComponent 
+          chartData={chartData} 
+          formulas={formulas} 
+          viewMode={viewMode}
+          onToggleViewMode={handleToggleViewMode}
+        />
 
         {/* Cards de cada fórmula */}
         <div className="mb-8">

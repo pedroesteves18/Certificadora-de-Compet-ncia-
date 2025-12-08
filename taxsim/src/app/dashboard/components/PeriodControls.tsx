@@ -4,6 +4,7 @@ interface PeriodControlsProps {
   onFirstMonthChange: (value: number) => void;
   onLastMonthChange: (value: number) => void;
   onUpdate: () => void;
+  viewMode: 'days' | 'months';
 }
 
 export default function PeriodControls({
@@ -11,14 +12,21 @@ export default function PeriodControls({
   lastMonth,
   onFirstMonthChange,
   onLastMonthChange,
-  onUpdate
+  onUpdate,
+  viewMode
 }: PeriodControlsProps) {
+  const isMonthMode = viewMode === 'months';
+  
   return (
     <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
-      <h3 className="text-sm font-semibold text-gray-700 mb-4 uppercase tracking-wide">🗺️ Período de Análise</h3>
+      <h3 className="text-sm font-semibold text-gray-700 mb-4 uppercase tracking-wide">
+        🗺️ Período de Análise {isMonthMode ? '(Meses)' : '(Dias)'}
+      </h3>
       <div className="flex flex-wrap gap-4 items-end">
         <div className="min-w-0">
-          <label className="block text-xs font-medium text-gray-600 mb-2">Primeiro mês</label>
+          <label className="block text-xs font-medium text-gray-600 mb-2">
+            {isMonthMode ? 'Primeiro mês' : 'Primeiro dia'}
+          </label>
           <input
             type="number"
             min={1}
@@ -28,7 +36,9 @@ export default function PeriodControls({
           />
         </div>
         <div className="min-w-0">
-          <label className="block text-xs font-medium text-gray-600 mb-2">Último mês</label>
+          <label className="block text-xs font-medium text-gray-600 mb-2">
+            {isMonthMode ? 'Último mês' : 'Último dia'}
+          </label>
           <input
             type="number"
             min={firstMonth}

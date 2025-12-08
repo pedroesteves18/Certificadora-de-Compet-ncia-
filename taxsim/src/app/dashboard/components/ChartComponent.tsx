@@ -37,27 +37,37 @@ interface Formula {
 
 // Para gráfico
 interface FormulaChartData {
-  month: number;
+  period: number;
   [formulaName: string]: number | undefined;
 }
 
 interface ChartComponentProps {
   chartData: FormulaChartData[];
   formulas: Formula[];
+  viewMode: 'days' | 'months';
+  onToggleViewMode: () => void;
 }
 
-export default function ChartComponent({ chartData, formulas }: ChartComponentProps) {
+export default function ChartComponent({ chartData, formulas, viewMode, onToggleViewMode }: ChartComponentProps) {
   return (
     <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100 mb-8">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-        📈 Comparação de Fórmulas
-      </h2>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+          📈 Comparação de Fórmulas
+        </h2>
+        <button
+          onClick={onToggleViewMode}
+          className="px-6 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold hover:from-blue-600 hover:to-purple-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+        >
+          {viewMode === 'days' ? '📅 Ver por Meses' : '📆 Ver por Dias'}
+        </button>
+      </div>
       <div className="w-full h-[450px]">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
             <XAxis 
-              dataKey="month" 
+              dataKey="period" 
               stroke="#6b7280"
               fontSize={12}
               tickLine={false}
@@ -94,7 +104,7 @@ export default function ChartComponent({ chartData, formulas }: ChartComponentPr
                 `R$ ${parseFloat(value).toFixed(2)}`,
                 name
               ]}
-              labelFormatter={(label) => `Mês ${label}`}
+              labelFormatter={(label) => viewMode === 'days' ? `Dia ${label}` : `Mês ${label}`}
             />
             {formulas.map((f, index) => {
               const colors = [

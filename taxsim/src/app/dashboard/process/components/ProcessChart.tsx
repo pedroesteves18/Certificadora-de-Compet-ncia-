@@ -11,20 +11,30 @@ import {
 
 interface ProcessChartProps {
   data: any[];
+  viewMode: 'days' | 'months';
+  onToggleViewMode: () => void;
 }
 
-export default function ProcessChart({ data }: ProcessChartProps) {
+export default function ProcessChart({ data, viewMode, onToggleViewMode }: ProcessChartProps) {
   return (
     <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100 mb-8">
-      <h3 className="text-xl font-semibold text-gray-800 mb-6 flex items-center gap-2">
-        📈 Evolução do Investimento
-      </h3>
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
+          📈 Evolução do Investimento
+        </h3>
+        <button
+          onClick={onToggleViewMode}
+          className="px-6 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold hover:from-blue-600 hover:to-purple-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+        >
+          {viewMode === 'days' ? '📅 Ver por Meses' : '📆 Ver por Dias'}
+        </button>
+      </div>
       <div className="w-full h-[450px]">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
             <XAxis 
-              dataKey="month" 
+              dataKey="period" 
               stroke="#6b7280"
               fontSize={12}
               tickLine={false}
@@ -58,7 +68,7 @@ export default function ProcessChart({ data }: ProcessChartProps) {
                 padding: '2px 0'
               }}
               formatter={(value: any) => `R$ ${parseFloat(value).toFixed(2)}`}
-              labelFormatter={(label) => `Dia ${label}`}
+              labelFormatter={(label) => viewMode === 'days' ? `Dia ${label}` : `Mês ${label}`}
             />
             <Legend 
               wrapperStyle={{

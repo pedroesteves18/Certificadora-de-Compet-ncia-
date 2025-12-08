@@ -4,6 +4,7 @@ interface ProcessPeriodControlsProps {
   onFirstMonthChange: (value: number) => void;
   onLastMonthChange: (value: number) => void;
   onUpdate: () => void;
+  viewMode: 'days' | 'months';
 }
 
 export default function ProcessPeriodControls({
@@ -11,14 +12,21 @@ export default function ProcessPeriodControls({
   lastMonth,
   onFirstMonthChange,
   onLastMonthChange,
-  onUpdate
+  onUpdate,
+  viewMode
 }: ProcessPeriodControlsProps) {
+  const isMonthMode = viewMode === 'months';
+  
   return (
     <div className="bg-white rounded-3xl p-6 shadow-xl border border-gray-100 mb-8">
-      <h3 className="text-lg font-semibold text-gray-800 mb-4">🗺️ Período da Simulação</h3>
+      <h3 className="text-lg font-semibold text-gray-800 mb-4">
+        🗺️ Período da Simulação {isMonthMode ? '(Meses)' : '(Dias)'}
+      </h3>
       <div className="flex flex-wrap gap-4 items-end">
         <div className="min-w-0 flex-1">
-          <label className="block text-sm font-medium text-gray-600 mb-2">Primeiro mês</label>
+          <label className="block text-sm font-medium text-gray-600 mb-2">
+            {isMonthMode ? 'Primeiro mês' : 'Primeiro dia'}
+          </label>
           <input
             type="number"
             min={1}
@@ -28,7 +36,9 @@ export default function ProcessPeriodControls({
           />
         </div>
         <div className="min-w-0 flex-1">
-          <label className="block text-sm font-medium text-gray-600 mb-2">Último mês</label>
+          <label className="block text-sm font-medium text-gray-600 mb-2">
+            {isMonthMode ? 'Último mês' : 'Último dia'}
+          </label>
           <input
             type="number"
             min={firstMonth}
