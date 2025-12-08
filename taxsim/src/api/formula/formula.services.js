@@ -137,16 +137,24 @@ processFormula: (formula, firstDay, lastDay) => {
     totalTaxesPaid += startingFee;
   }
 
-  const getDailyPrice = (currentPrice, type) => {
-    switch (type) {
-      case "Cripto":
-      case "Acao":
-      case "Cambio":
-        return currentPrice * (1 + (Math.random() * (inv.interestRate * 2) - inv.interestRate) / 100);
-      default:
-        return currentPrice;
-    }
+const getDailyPrice = (currentPrice, type) => {
+  const base = inv.interestRate; 
+  
+  const multipliers = {
+    Cripto: { min: 4, max: 8 },
+    Acao: { min: 1, max: 2 },
+    Cambio: { min: 0.3, max: 0.7 },
   };
+
+  const m = multipliers[type];
+  if (!m) return currentPrice;
+
+  const mult = Math.random() * (m.max - m.min) + m.min;
+  const vol = base * mult;
+  const changePercent = (Math.random() * (vol * 2) - vol) / 100;
+
+  return currentPrice * (1 + changePercent);
+};
 
   const dailyRate = inv.interestRate ? Math.pow(1 + inv.interestRate / 100, 1 / 365) - 1 : 0;
 
