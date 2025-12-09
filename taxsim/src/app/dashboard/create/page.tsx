@@ -13,7 +13,7 @@ export type LocalInvestment = {
   amount: number;
   interestRate: number | null;
   interestRateType: "percent" | "currency";
-  type: "Acao" | "FII" | "RendaFixa" | "Cripto" | "Cambio";
+  type: "Acao" | "RendaFixa" | "Cripto" | "Cambio";
   startDate: string;
   endDate: string | null;
 };
@@ -22,14 +22,13 @@ export type LocalTax = {
   name: string;
   mode: "percent" | "fixed";
   value: number;
-  appliesTo: "initial";
+  appliesTo: "initial" | "profit";
 };
 
 // Opções dos selects
 const investmentTypes: LocalInvestment["type"][] = [
   "RendaFixa",
   "Acao",
-  "FII",
   "Cripto",
   "Cambio",
 ];
@@ -47,9 +46,10 @@ const taxModeLabels: Record<LocalTax["mode"], string> = {
   fixed: "Fixa",
 };
 
-const taxAppliesTo: LocalTax["appliesTo"][] = ["initial"];
+const taxAppliesTo = ["initial", "profit"] as const;
 const taxAppliesToLabels: Record<LocalTax["appliesTo"], string> = {
-  initial: "Valor Inicial"
+  initial: "Valor Inicial",
+  profit: "Lucro",
 };
 
 // ---------------------------------------------------

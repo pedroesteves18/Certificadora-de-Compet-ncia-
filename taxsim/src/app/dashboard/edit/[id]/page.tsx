@@ -323,7 +323,7 @@ export default function EditFormulaPage() {
               )}
             </div>
 
-            {showTaxForm && !editingTaxId && !investments.some(inv => inv.type === "RendaFixa") && (
+            {showTaxForm && !editingTaxId && !investments.some((inv: any) => inv.type === "RendaFixa") && (
               <div className="mb-6 p-6 border border-blue-200 rounded-2xl bg-blue-50">
                 <form onSubmit={handleCreateTax}>
                   <h3 className="text-lg font-semibold text-blue-800 mb-4">Nova Taxa</h3>
@@ -352,7 +352,7 @@ export default function EditFormulaPage() {
               </div>
             )}
 
-            {investments.some(inv => inv.type === "RendaFixa") ? (
+            {investments.some((inv: any) => inv.type === "RendaFixa") ? (
               <div className="text-center py-12">
                 <div className="text-4xl mb-4">📊</div>
                 <p className="text-gray-500 font-medium">Renda Fixa não permite adicionar taxas.</p>
